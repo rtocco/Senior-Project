@@ -1,3 +1,8 @@
+Disclaimer: All of the original code uploaded to this repository was written
+by Dr. Edward Sciore. All other changes since it was uploaded are my own.
+The database system is intended for educational purposes only.
+
+
                       THE SIMPLEDB DATABASE SYSTEM
                   General Information and Instructions
 
