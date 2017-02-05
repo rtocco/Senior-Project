@@ -21,21 +21,21 @@ public class Buffer {
    private int logSequenceNumber = -1; // negative means no corresponding log record
 
    /**
-    * Creates a new buffer, wrapping a new 
-    * {@link simpledb.file.Page page}.  
-    * This constructor is called exclusively by the 
-    * class {@link BasicBufferMgr}.   
-    * It depends on  the 
-    * {@link simpledb.log.LogMgr LogMgr} object 
+    * Creates a new buffer, wrapping a new
+    * {@link simpledb.file.Page page}.
+    * This constructor is called exclusively by the
+    * class {@link BasicBufferMgr}.
+    * It depends on  the
+    * {@link simpledb.log.LogMgr LogMgr} object
     * that it gets from the class
     * {@link simpledb.server.SimpleDB}.
     * That object is created during system initialization.
-    * Thus this constructor cannot be called until 
+    * Thus this constructor cannot be called until
     * {@link simpledb.server.SimpleDB#initFileAndLogMgr(String)} or
     * is called first.
     */
    public Buffer() {}
-   
+
    /**
     * Returns the integer value at the specified offset of the
     * buffer's page.
@@ -138,6 +138,13 @@ public class Buffer {
     */
    void unpin() {
       pins--;
+   }
+
+   /**
+    * @return The number of pins, used for testing.
+    */
+   int numPins() {
+      return pins;
    }
 
    /**

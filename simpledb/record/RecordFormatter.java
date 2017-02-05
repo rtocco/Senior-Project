@@ -7,13 +7,13 @@ import simpledb.file.Page;
 import simpledb.buffer.PageFormatter;
 
 /**
- * An object that can format a page to look like a block of 
+ * An object that can format a page to look like a block of
  * empty records.
  * @author Edward Sciore
  */
-class RecordFormatter implements PageFormatter {
+public class RecordFormatter implements PageFormatter {
    private TableInfo ti;
-   
+
    /**
     * Creates a formatter for a new page of a table.
     * @param ti the table's metadata
@@ -21,8 +21,8 @@ class RecordFormatter implements PageFormatter {
    public RecordFormatter(TableInfo ti) {
       this.ti = ti;
    }
-   
-   /** 
+
+   /**
     * Formats the page by allocating as many record slots
     * as possible, given the record length.
     * Each record slot is assigned a flag of EMPTY.
@@ -37,7 +37,7 @@ class RecordFormatter implements PageFormatter {
          makeDefaultRecord(page, pos);
       }
    }
-   
+
    private void makeDefaultRecord(Page page, int pos) {
       for (String fldname : ti.schema().fields()) {
          int offset = ti.offset(fldname);
