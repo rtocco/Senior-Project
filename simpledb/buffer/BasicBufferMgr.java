@@ -119,4 +119,11 @@ class BasicBufferMgr {
       }
       return null;
    }
+
+   public void test() {
+      for(int i = 0; i < bufferpool.length; i++) {
+         System.out.print(i + " ");
+      }
+      System.out.println();
+   }
 }

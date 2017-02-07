@@ -3,10 +3,33 @@ repository was written by Dr. Edward Sciore. All other changes since it
 was uploaded are my own.The database system is intended for educational
 purposes only.
 
+To Do List:
+
+   1. Implement an LRU replacement algorithm in the Buffer Manager.
+      Currently, the naive approach is used.
+
+   2. Implement non-quiescent checkpointing.
+
+   3. Modify deadlock detection to use a wait-die approach. Timeout is the
+      current method.
+
+   4. Merge in the extensions:
+         - Indexing
+         - Sorting
+         - Improved buffer allocation
+         - Query Optimization
+
+   5. Extend the subset of SQL currently implemented. Right now, only the simple
+      create, delete, update, and select statements are usable.
+
+
+
+
+
+
 
                       THE SIMPLEDB DATABASE SYSTEM
                   General Information and Instructions
-
 
 This document contains the following sections:
     * Release Notes
