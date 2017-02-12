@@ -1,5 +1,7 @@
 package simpledb.buffer;
 
+import java.util.Date;
+
 import simpledb.server.SimpleDB;
 import simpledb.file.*;
 
@@ -19,6 +21,7 @@ public class Buffer {
    private int pins = 0;
    private int modifiedBy = -1;  // negative means not modified
    private int logSequenceNumber = -1; // negative means no corresponding log record
+   private Date lastUsed = new Date();
 
    /**
     * Creates a new buffer, wrapping a new
@@ -134,17 +137,25 @@ public class Buffer {
    }
 
    /**
-    * Decreases the buffer's pin count.
+    * Decreases the buffer's pin count and updates the last used time.
     */
    void unpin() {
+      lastUsed = new Date();
       pins--;
    }
 
    /**
-    * @return The number of pins, used for testing.
+    * Returns the number of pins, used for testing.
     */
    int numPins() {
       return pins;
+   }
+
+   /**
+    * Returns the last time that the buffer was used (when it was unpinned);
+    */
+   Date lastUsed() {
+      return lastUsed;
    }
 
    /**

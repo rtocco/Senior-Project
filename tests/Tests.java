@@ -68,9 +68,13 @@ public class Tests {
    static void runBufferTests() {
       Result result = JUnitCore.runClasses(BufferManagerTests.class);
 
+      System.out.println("\n");
+
       for (Failure failure : result.getFailures()) {
          System.out.println(failure.toString());
       }
+
+      System.out.println("\n");
 
       if(result.wasSuccessful()) {
          System.out.println("All tests passed");

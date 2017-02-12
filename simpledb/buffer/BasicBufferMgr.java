@@ -1,5 +1,7 @@
 package simpledb.buffer;
 
+import java.util.Date;
+
 import simpledb.file.*;
 
 /**
@@ -110,20 +112,33 @@ class BasicBufferMgr {
       return null;
    }
 
-   // Currently uses naive approach, change to LRU.
+   /**
+    * Uses LRU replacement algorithm to choose an unpinned buffer.
+    */
    private Buffer chooseUnpinnedBuffer() {
-      for (Buffer buff : bufferpool) {
-         if (!buff.isPinned()) {
-            return buff;
+      int chosenIndex = -1;
+      long leastTime = Long.MAX_VALUE;
+
+      for(int i = 0; i < bufferpool.length; i++) {
+         Buffer buff = bufferpool[i];
+
+         // We only want to look at unpinned buffers.
+         if(!buff.isPinned()) {
+            long lastUsed = buff.lastUsed().getTime();
+
+            // If, out of the buffers so far, this one was last used the longest ago.
+            if(lastUsed < leastTime) {
+               leastTime = lastUsed;
+               chosenIndex = i;
+            }
          }
       }
-      return null;
-   }
 
-   public void test() {
-      for(int i = 0; i < bufferpool.length; i++) {
-         System.out.print(i + " ");
+      // If no unpinned buffers were found.
+      if(chosenIndex == -1) {
+         return null;
+      } else {
+         return bufferpool[chosenIndex];
       }
-      System.out.println();
    }
 }
