@@ -1,7 +1,5 @@
 package simpledb.buffer;
 
-import java.util.concurrent.TimeUnit;
-
 import simpledb.record.*;
 import static org.junit.Assert.*;
 import org.junit.Test;
@@ -53,9 +51,7 @@ public class BufferManagerTests {
       // have different last used times.
       try {
          bufferManager.unpin(buffer4);
-         TimeUnit.MILLISECONDS.sleep(10);
          bufferManager.unpin(buffer1);
-         TimeUnit.MILLISECONDS.sleep(10);
          bufferManager.unpin(buffer5);
       } catch(Exception e) {
          e.printStackTrace();

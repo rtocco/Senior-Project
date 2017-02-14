@@ -1,7 +1,5 @@
 package simpledb.buffer;
 
-import java.util.Date;
-
 import simpledb.file.*;
 
 /**
@@ -124,7 +122,7 @@ class BasicBufferMgr {
 
          // We only want to look at unpinned buffers.
          if(!buff.isPinned()) {
-            long lastUsed = buff.lastUsed().getTime();
+            long lastUsed = buff.lastUsed();
 
             // If, out of the buffers so far, this one was last used the longest ago.
             if(lastUsed < leastTime) {
