@@ -45,19 +45,19 @@ public class TransactionTests {
 
    // Test whether the system can handle receiving reads and
    // writes one after the other from the same transaction.
-   @Test
-   public void concurrencyTest1() {
-      Transaction transaction = new Transaction();
-      Block block = new Block("student.tbl", 1);
-      transaction.pin(block);
-
-      assertEquals("Value should initially be 0", transaction.getInt(block, 0), 0);
-      transaction.setInt(block, 0, 5);
-      assertEquals("Value should now be 5", transaction.getInt(block, 0), 5);
-
-      transaction.setInt(block, 0, 10);
-      assertEquals("Value should now be 10", transaction.getInt(block, 0), 10);
-   }
+   // @Test
+   // public void concurrencyTest1() {
+   //    Transaction transaction = new Transaction();
+   //    Block block = new Block("student.tbl", 1);
+   //    transaction.pin(block);
+   //
+   //    assertEquals("Value should initially be 0", transaction.getInt(block, 0), 0);
+   //    transaction.setInt(block, 0, 5);
+   //    assertEquals("Value should now be 5", transaction.getInt(block, 0), 5);
+   //
+   //    transaction.setInt(block, 0, 10);
+   //    assertEquals("Value should now be 10", transaction.getInt(block, 0), 10);
+   // }
 
    // Create deadlock using two processes, both writing to blocks.
    // @Test
@@ -97,29 +97,51 @@ public class TransactionTests {
    // }
 
    // Test deadlock with 3 transactions and a mixture of sLocks and xLocks
+   // @Test
+   // public void concurrencyTest3() {
+   //    long beginTime = System.currentTimeMillis();
+   //
+   //    // Start four transactions that will cause deadlock to occur.
+   //    Thread thread1 = new Thread(new Test3Thread1("thread1"), "thread1");
+   //    Thread thread2 = new Thread(new Test3Thread2("thread2"), "thread2");
+   //    Thread thread3 = new Thread(new Test3Thread3("thread3"), "thread3");
+   //    thread1.start();
+   //    thread2.start();
+   //    thread3.start();
+   //
+   //    try {
+   //       thread1.join();
+   //       thread2.join();
+   //       thread3.join();
+   //    } catch(InterruptedException e) {
+   //       System.out.println(e.toString());
+   //    }
+   //
+   //    long endTime = System.currentTimeMillis();
+   //
+   //    // assertTrue("Test 3: Deadlock should be detected in less than 3 seconds", (endTime - beginTime) < 3000);
+   // }
+
+   // Test if deadlock detection works taking into account buffer pinning.
    @Test
-   public void concurrencyTest3() {
+   public void concurrencyTest4() {
       long beginTime = System.currentTimeMillis();
 
-      // Start four transactions that will cause deadlock to occur.
-      Thread thread1 = new Thread(new Test3Thread1("thread1"), "thread1");
-      Thread thread2 = new Thread(new Test3Thread2("thread2"), "thread2");
-      Thread thread3 = new Thread(new Test3Thread3("thread3"), "thread3");
+      Thread thread1 = new Thread(new Test4Thread1("thread1"), "thread1");
+      Thread thread2 = new Thread(new Test4Thread2("thread2"), "thread2");
       thread1.start();
       thread2.start();
-      thread3.start();
 
       try {
          thread1.join();
          thread2.join();
-         thread3.join();
       } catch(InterruptedException e) {
          System.out.println(e.toString());
       }
 
       long endTime = System.currentTimeMillis();
 
-      // assertTrue("Test 3: Deadlock should be detected in less than 3 seconds", (endTime - beginTime) < 3000);
+      // assertTrue("Test 4: Deadlock should be detected in less than 3 seconds", (endTime - beginTime) < 3000);
    }
 }
 
@@ -306,6 +328,93 @@ class Test3Thread3 implements Runnable {
          // Unpin the blocks and commit the transaction.
          transaction.unpin(block5);
          transaction.unpin(block6);
+         transaction.commit();
+      } catch(InterruptedException e) {
+         System.out.println(e.toString());
+      } catch(LockAbortException e) {
+         transaction.rollback();
+      }
+   }
+}
+
+/*
+ * Classes for Concurrency Test 4
+ */
+
+class Test4Thread1 implements Runnable {
+   String name;
+
+   public Test4Thread1(String name) {
+      this.name = name;
+   }
+
+   public void run() {
+      Transaction transaction = new Transaction();
+      Block block7 = new Block("student.tbl", 7);
+      Block block8 = new Block("student.tbl", 8);
+      Block block9 = new Block("student.tbl", 9);
+      Block block10 = new Block("student.tbl", 10);
+      Block block11 = new Block("student.tbl", 11);
+      Block block12 = new Block("student.tbl", 12);
+
+      Block block15 = new Block("student.tbl", 15);
+
+      try {
+         // Pin six blocks.
+         transaction.pin(block7);
+         transaction.pin(block8);
+         transaction.pin(block9);
+         transaction.pin(block10);
+         transaction.pin(block11);
+         transaction.pin(block12);
+
+         transaction.setInt(block12, 0, 12);
+         Thread.sleep(100);
+
+         transaction.pin(block15);
+
+         // Unpin the blocks and commit the transaction.
+         transaction.unpin(block7);
+         transaction.unpin(block8);
+         transaction.unpin(block9);
+         transaction.unpin(block10);
+         transaction.unpin(block11);
+         transaction.unpin(block12);
+         transaction.unpin(block15);
+         transaction.commit();
+      } catch(InterruptedException e) {
+         System.out.println(e.toString());
+      } catch(LockAbortException e) {
+         transaction.rollback();
+      }
+   }
+}
+
+class Test4Thread2 implements Runnable {
+   String name;
+
+   public Test4Thread2(String name) {
+      this.name = name;
+   }
+
+   public void run() {
+      Transaction transaction = new Transaction();
+      Block block12 = new Block("student.tbl", 12);
+      Block block13 = new Block("student.tbl", 13);
+      Block block14 = new Block("student.tbl", 14);
+
+      try {
+         transaction.pin(block12);
+         transaction.pin(block13);
+         transaction.pin(block14);
+         Thread.sleep(100);
+
+         transaction.setInt(block12, 0, 12);
+
+         // Unpin the blocks and commit the transaction.
+         transaction.unpin(block12);
+         transaction.unpin(block13);
+         transaction.unpin(block14);
          transaction.commit();
       } catch(InterruptedException e) {
          System.out.println(e.toString());
