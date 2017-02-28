@@ -5,21 +5,16 @@ purposes only.
 
 To Do List:
 
-   1. Implement an LRU replacement algorithm in the Buffer Manager.
+   Done - Implement an LRU replacement algorithm in the Buffer Manager.
       Currently, the naive approach is used.
 
-   2. Implement non-quiescent checkpointing.
+   - Modify deadlock detection to search for deadlocks via a graph, as opposed
+      to having transactions timeout after a while. Also consider improving the
+      mechanism for rescheduling transactions once a block is set free.
 
-   3. Modify deadlock detection to use a wait-die approach. Timeout is the
-      current method.
+   - Merge in the indexing extension.
 
-   4. Merge in the extensions:
-         - Indexing
-         - Sorting
-         - Improved buffer allocation
-         - Query Optimization
-
-   5. Extend the subset of SQL currently implemented. Right now, only the simple
+   - Extend the subset of SQL currently implemented. Right now, only the simple
       create, delete, update, and select statements are usable.
 
 

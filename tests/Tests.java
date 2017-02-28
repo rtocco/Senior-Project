@@ -1,6 +1,7 @@
 import simpledb.remote.*;
 import simpledb.buffer.*;
 import simpledb.server.*;
+import simpledb.tx.*;
 import java.rmi.registry.*;
 
 import java.sql.*;
@@ -27,7 +28,8 @@ public class Tests {
       setUpDB();
 
       // Run unit tests.
-      runBufferTests();
+      // runBufferTests();
+      runTransactionTests();
 
       // Kill server.
       System.exit(1);
@@ -67,6 +69,25 @@ public class Tests {
    // Run tests on the buffer manager.
    static void runBufferTests() {
       Result result = JUnitCore.runClasses(BufferManagerTests.class);
+
+      System.out.println("\n");
+
+      for (Failure failure : result.getFailures()) {
+         System.out.println(failure.toString());
+      }
+
+      System.out.println("\n");
+
+      if(result.wasSuccessful()) {
+         System.out.println("All tests passed");
+      } else {
+         System.out.println("At least one test failed");
+      }
+   }
+
+   // Run tests on transactions and the recovery manager.
+   static void runTransactionTests() {
+      Result result = JUnitCore.runClasses(TransactionTests.class);
 
       System.out.println("\n");
 

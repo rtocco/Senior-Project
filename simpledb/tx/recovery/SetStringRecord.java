@@ -9,7 +9,7 @@ class SetStringRecord implements LogRecord {
    private int txnum, offset;
    private String val;
    private Block blk;
-   
+
    /**
     * Creates a new setstring log record.
     * @param txnum the ID of the specified transaction
@@ -23,7 +23,7 @@ class SetStringRecord implements LogRecord {
       this.offset = offset;
       this.val = val;
    }
-   
+
    /**
     * Creates a log record by reading five other values from the log.
     * @param rec the basic log record
@@ -36,8 +36,8 @@ class SetStringRecord implements LogRecord {
       offset = rec.nextInt();
       val = rec.nextString();
    }
-   
-   /** 
+
+   /**
     * Writes a setString record to the log.
     * This log record contains the SETSTRING operator,
     * followed by the transaction id, the filename, number,
@@ -50,20 +50,21 @@ class SetStringRecord implements LogRecord {
          blk.number(), offset, val};
       return logMgr.append(rec);
    }
-   
+
    public int op() {
       return SETSTRING;
    }
-   
+
    public int txNumber() {
       return txnum;
    }
-   
+
    public String toString() {
+      System.out.println(val);
       return "<SETSTRING " + txnum + " " + blk + " " + offset + " " + val + ">";
    }
-   
-   /** 
+
+   /**
     * Replaces the specified data value with the value saved in the log record.
     * The method pins a buffer to the specified block,
     * calls setString to restore the saved value

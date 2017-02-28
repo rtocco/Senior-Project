@@ -8,20 +8,20 @@ import simpledb.server.SimpleDB;
 /**
  * A class that provides the ability to read records
  * from the log in reverse order.
- * Unlike the similar class 
- * {@link simpledb.log.LogIterator LogIterator},  
+ * Unlike the similar class
+ * {@link simpledb.log.LogIterator LogIterator},
  * this class understands the meaning of the log records.
  * @author Edward Sciore
  */
-class LogRecordIterator implements Iterator<LogRecord> {
+public class LogRecordIterator implements Iterator<LogRecord> {
    private Iterator<BasicLogRecord> iter = SimpleDB.logMgr().iterator();
-   
+
    public boolean hasNext() {
       return iter.hasNext();
    }
-   
+
    /**
-    * Constructs a log record from the values in the 
+    * Constructs a log record from the values in the
     * current basic log record.
     * The method first reads an integer, which denotes
     * the type of the log record.  Based on that type,
@@ -48,8 +48,8 @@ class LogRecordIterator implements Iterator<LogRecord> {
          default:
             return null;
       }
-   } 
-   
+   }
+
    public void remove() {
       throw new UnsupportedOperationException();
    }
