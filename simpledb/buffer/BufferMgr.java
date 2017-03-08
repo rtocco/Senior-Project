@@ -1,6 +1,9 @@
 package simpledb.buffer;
 
+import java.util.HashMap;
+
 import simpledb.file.*;
+import simpledb.tx.concurrency.*;
 
 /**
  * The publicly-accessible buffer manager.
@@ -21,6 +24,8 @@ import simpledb.file.*;
 public class BufferMgr {
    private static final long MAX_TIME = 10000; // 10 seconds
    private BasicBufferMgr bufferMgr;
+
+   private static LockTable locktbl = new LockTable();
 
    /**
     * Creates a new buffer manager having the specified
@@ -47,16 +52,27 @@ public class BufferMgr {
     * @param blk a reference to a disk block
     * @return the buffer pinned to that block
     */
-   public synchronized Buffer pin(Block blk) {
+   public synchronized Buffer pin(Block blk, int txnum) {
       try {
          long timestamp = System.currentTimeMillis();
          Buffer buff = bufferMgr.pin(blk);
          while (buff == null && !waitingTooLong(timestamp)) {
-            wait(MAX_TIME);
-            buff = bufferMgr.pin(blk);
+
+            // We check the lock table to see if having this buffer wait will cause deadlock.
+            if(locktbl.noBufferConflicts(txnum)) {
+               locktbl.putOnWaitList(txnum);
+               wait(MAX_TIME);
+               buff = bufferMgr.pin(blk);
+            } else {
+               throw new BufferAbortException();
+            }
          }
          if (buff == null)
             throw new BufferAbortException();
+
+         locktbl.takeOffWaitList(txnum);
+         // locktbl.addPin(txnum);
+
          return buff;
       }
       catch(InterruptedException e) {
@@ -73,16 +89,27 @@ public class BufferMgr {
     * @param fmtr the formatter used to initialize the page
     * @return the buffer pinned to that block
     */
-   public synchronized Buffer pinNew(String filename, PageFormatter fmtr) {
+   public synchronized Buffer pinNew(String filename, PageFormatter fmtr, int txnum) {
       try {
          long timestamp = System.currentTimeMillis();
          Buffer buff = bufferMgr.pinNew(filename, fmtr);
          while (buff == null && !waitingTooLong(timestamp)) {
-            wait(MAX_TIME);
-            buff = bufferMgr.pinNew(filename, fmtr);
+
+            // We check the lock table to see if having this buffer wait will cause deadlock.
+            if(locktbl.noBufferConflicts(txnum)) {
+               locktbl.putOnWaitList(txnum);
+               wait(MAX_TIME);
+               buff = bufferMgr.pinNew(filename, fmtr);
+            } else {
+               throw new BufferAbortException();
+            }
          }
          if (buff == null)
             throw new BufferAbortException();
+
+         locktbl.takeOffWaitList(txnum);
+         // locktbl.addPin(txnum);
+
          return buff;
       }
       catch(InterruptedException e) {
@@ -96,8 +123,10 @@ public class BufferMgr {
     * then the threads on the wait list are notified.
     * @param buff the buffer to be unpinned
     */
-   public synchronized void unpin(Buffer buff) {
+   public synchronized void unpin(Buffer buff, int txnum) {
       bufferMgr.unpin(buff);
+      // locktbl.removePin(txnum);
+
       if (!buff.isPinned())
          notifyAll();
    }
@@ -121,5 +150,5 @@ public class BufferMgr {
    private boolean waitingTooLong(long starttime) {
       return System.currentTimeMillis() - starttime > MAX_TIME;
    }
-   
+
 }

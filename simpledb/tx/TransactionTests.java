@@ -8,6 +8,7 @@ import simpledb.file.Block;
 import simpledb.record.*;
 import simpledb.tx.recovery.*;
 import simpledb.tx.concurrency.*;
+import simpledb.buffer.BufferAbortException;
 
 public class TransactionTests {
 
@@ -45,88 +46,96 @@ public class TransactionTests {
 
    // Test whether the system can handle receiving reads and
    // writes one after the other from the same transaction.
-   // @Test
-   // public void concurrencyTest1() {
-   //    Transaction transaction = new Transaction();
-   //    Block block = new Block("student.tbl", 1);
-   //    transaction.pin(block);
-   //
-   //    assertEquals("Value should initially be 0", transaction.getInt(block, 0), 0);
-   //    transaction.setInt(block, 0, 5);
-   //    assertEquals("Value should now be 5", transaction.getInt(block, 0), 5);
-   //
-   //    transaction.setInt(block, 0, 10);
-   //    assertEquals("Value should now be 10", transaction.getInt(block, 0), 10);
-   // }
+   @Test
+   public void concurrencyTest1() {
+      System.out.println("\nConcurrency Test 1");
+
+      Transaction transaction = new Transaction();
+      Block block = new Block("student.tbl", 1);
+      transaction.pin(block);
+
+      assertEquals("Value should initially be 0", transaction.getInt(block, 0), 0);
+      transaction.setInt(block, 0, 5);
+      assertEquals("Value should now be 5", transaction.getInt(block, 0), 5);
+
+      transaction.setInt(block, 0, 10);
+      assertEquals("Value should now be 10", transaction.getInt(block, 0), 10);
+   }
 
    // Create deadlock using two processes, both writing to blocks.
-   // @Test
-   // public void concurrencyTest2() {
-   //    System.out.println("\nTwo-transaction Concurrency Tests");
-   //
-   //    // Keep track of the time.
-   //    long beginTime = System.currentTimeMillis();
-   //
-   //    // Start two transactions that will cause deadlock to occur.
-   //    Thread thread1 = new Thread(new Test2Thread1("thread1"), "thread1");
-   //    Thread thread2 = new Thread(new Test2Thread2("thread2"), "thread2");
-   //    thread1.start();
-   //    thread2.start();
-   //
-   //    try {
-   //       thread1.join();
-   //       thread2.join();
-   //    } catch(InterruptedException e) {
-   //       System.out.println(e.toString());
-   //    }
-   //
-   //    long endTime = System.currentTimeMillis();
-   //
-   //    // Initial deadlock detection timed out after 5 seconds. New one should work quickly.
-   //    assertTrue("Test 2: Deadlock should be detected in less than 3 seconds", (endTime - beginTime) < 3000);
-   //
-   //    // Test if thread 1 changed the values in blocks 1 and 2.
-   //    Transaction transaction = new Transaction();
-   //    Block block2 = new Block("student.tbl", 2);
-   //    Block block3 = new Block("student.tbl", 3);
-   //    transaction.pin(block2);
-   //    transaction.pin(block3);
-   //
-   //    assertEquals("Block 2 should equal 2 at offset 0", transaction.getInt(block2, 0), 2);
-   //    assertEquals("Block 3 should equal 3 at offset 0", transaction.getInt(block3, 0), 3);
-   // }
+   @Test
+   public void concurrencyTest2() {
+      System.out.println("\nConcurrency Test 2");
+
+      // Keep track of the time.
+      long beginTime = System.currentTimeMillis();
+
+      // Start two transactions that will cause deadlock to occur.
+      Thread thread1 = new Thread(new Test2Thread1("thread1"), "thread1");
+      Thread thread2 = new Thread(new Test2Thread2("thread2"), "thread2");
+      thread1.start();
+      thread2.start();
+
+      try {
+         thread1.join();
+         thread2.join();
+      } catch(InterruptedException e) {
+         System.out.println(e.toString());
+      }
+
+      long endTime = System.currentTimeMillis();
+
+      // Initial deadlock detection timed out after 5 seconds. New one should work quickly.
+      assertTrue("Test 2: Deadlock should be detected in less than 1 second", (endTime - beginTime) < 1000);
+
+      // Test if thread 1 changed the values in blocks 1 and 2.
+      Transaction transaction = new Transaction();
+      Block block2 = new Block("student.tbl", 2);
+      Block block3 = new Block("student.tbl", 3);
+      transaction.pin(block2);
+      transaction.pin(block3);
+
+      assertEquals("Block 2 should equal 2 at offset 0", transaction.getInt(block2, 0), 2);
+      assertEquals("Block 3 should equal 3 at offset 0", transaction.getInt(block3, 0), 3);
+   }
 
    // Test deadlock with 3 transactions and a mixture of sLocks and xLocks
-   // @Test
-   // public void concurrencyTest3() {
-   //    long beginTime = System.currentTimeMillis();
-   //
-   //    // Start four transactions that will cause deadlock to occur.
-   //    Thread thread1 = new Thread(new Test3Thread1("thread1"), "thread1");
-   //    Thread thread2 = new Thread(new Test3Thread2("thread2"), "thread2");
-   //    Thread thread3 = new Thread(new Test3Thread3("thread3"), "thread3");
-   //    thread1.start();
-   //    thread2.start();
-   //    thread3.start();
-   //
-   //    try {
-   //       thread1.join();
-   //       thread2.join();
-   //       thread3.join();
-   //    } catch(InterruptedException e) {
-   //       System.out.println(e.toString());
-   //    }
-   //
-   //    long endTime = System.currentTimeMillis();
-   //
-   //    // assertTrue("Test 3: Deadlock should be detected in less than 3 seconds", (endTime - beginTime) < 3000);
-   // }
+   @Test
+   public void concurrencyTest3() {
+      System.out.println("\nConcurrency Test 3");
+
+      long beginTime = System.currentTimeMillis();
+
+      // Start three transactions that will cause deadlock to occur.
+      Thread thread1 = new Thread(new Test3Thread1("thread1"), "thread1");
+      Thread thread2 = new Thread(new Test3Thread2("thread2"), "thread2");
+      Thread thread3 = new Thread(new Test3Thread3("thread3"), "thread3");
+      thread1.start();
+      thread2.start();
+      thread3.start();
+
+      try {
+         thread1.join();
+         thread2.join();
+         thread3.join();
+      } catch(InterruptedException e) {
+         System.out.println(e.toString());
+      }
+
+      long endTime = System.currentTimeMillis();
+
+      // Deadlock should be detected immediately.
+      assertTrue("Test 3: Deadlock should be detected in less than 1 second", (endTime - beginTime) < 1000);
+   }
 
    // Test if deadlock detection works taking into account buffer pinning.
    @Test
    public void concurrencyTest4() {
+      System.out.println("\nConcurrency Test 4");
+
       long beginTime = System.currentTimeMillis();
 
+      // Start two transactions that will cause deadlock to occur partially because of buffer conflicts
       Thread thread1 = new Thread(new Test4Thread1("thread1"), "thread1");
       Thread thread2 = new Thread(new Test4Thread2("thread2"), "thread2");
       thread1.start();
@@ -141,9 +150,67 @@ public class TransactionTests {
 
       long endTime = System.currentTimeMillis();
 
-      // assertTrue("Test 4: Deadlock should be detected in less than 3 seconds", (endTime - beginTime) < 3000);
+      // Deadlock should be detected immediately.
+      assertTrue("Test 4: Deadlock should be detected in less than 1 second", (endTime - beginTime) < 1000);
+   }
+
+   // Test to make sure the new deadlock detection does not cause false negatives.
+   @Test
+   public void concurrencyTest5() {
+      System.out.println("\nConcurrency Test 5");
+
+      // Start two transactions, thread2 is dependent on thread1.
+      Thread thread1 = new Thread(new Test5Thread1("thread1"), "thread1");
+      Thread thread2 = new Thread(new Test5Thread2("thread2"), "thread2");
+      thread1.start();
+      thread2.start();
+
+      try {
+         thread1.join();
+         thread2.join();
+      } catch(InterruptedException e) {
+         System.out.println(e.toString());
+      }
+
+      Transaction transaction = new Transaction();
+      Block block16 = new Block("student.tbl", 16);
+      Block block17 = new Block("student.tbl", 17);
+      transaction.pin(block16);
+      transaction.pin(block17);
+
+      assertEquals("Block 16 should equal 16 at offset 0", transaction.getInt(block16, 0), 16);
+      assertEquals("Block 17 should equal 17 at offset 0", transaction.getInt(block17, 0), 17);
+   }
+
+   // Test to ensure false negatives do not occur when the buffer manager runs out of buffers.
+   @Test
+   public void concurrencyTest6() {
+      System.out.println("\nConcurrency Test 6");
+
+      // Start two transactions, thread2 is dependent on thread1.
+      Thread thread1 = new Thread(new Test6Thread1("thread1"), "thread1");
+      Thread thread2 = new Thread(new Test6Thread2("thread1"), "thread2");
+      thread1.start();
+      thread2.start();
+
+      try {
+         thread1.join();
+         thread2.join();
+      } catch(InterruptedException e) {
+         System.out.println(e.toString());
+      }
+
+      Transaction transaction = new Transaction();
+      Block block25 = new Block("student.tbl", 25);
+      Block block26 = new Block("student.tbl", 26);
+      transaction.pin(block25);
+      transaction.pin(block26);
+
+      assertEquals("Block 25 should equal 25 at offset 0", transaction.getInt(block25, 0), 25);
+      assertEquals("Block 26 should equal 26 at offset 0", transaction.getInt(block26, 0), 26);
    }
 }
+
 
 /*
  * Classes for Concurrency Test 2
@@ -166,13 +233,13 @@ class Test2Thread1 implements Runnable {
          // Update block 2, then wait so that the transaction in thread 2 has time to pin
          // block 3. We wait longer than that in that thread so that this one does not timeout.
          transaction.pin(block2);
-         transaction.setInt(block2, 0, 2);
-         Thread.sleep(2000);
+         transaction.setInt(block2, 0, 5);
+         Thread.sleep(100);
 
          // Update block 3. The setInt call will not happen until
          // the transaction in thread 2 times out and rolls back.
          transaction.pin(block3);
-         transaction.setInt(block3, 0, 3);
+         transaction.setInt(block3, 0, 5);
 
          // Unpin the blocks and commit the transaction.
          transaction.unpin(block2);
@@ -181,7 +248,7 @@ class Test2Thread1 implements Runnable {
       } catch(InterruptedException e) {
          System.out.println(e.toString());
       } catch(LockAbortException e) {
-         e.printStackTrace();
+         transaction.rollback();
       }
    }
 }
@@ -200,22 +267,18 @@ class Test2Thread2 implements Runnable {
       Block block3 = new Block("student.tbl", 3);
 
       try {
-         // Update block 3, then wait so that the transaction
-         // in thread 1 has time to pin block 2.
+         // Update block 3
          transaction.pin(block3);
-         transaction.setInt(block3, 0, 5);
-         Thread.sleep(100);
+         transaction.setInt(block3, 0, 3);
 
          // Update block 2.
          transaction.pin(block2);
-         transaction.setInt(block2, 0, 5);
+         transaction.setInt(block2, 0, 2);
 
          // Unpin the blocks and commit the transaction.
          transaction.unpin(block2);
          transaction.unpin(block3);
          transaction.commit();
-      } catch(InterruptedException e) {
-         System.out.println(e.toString());
       } catch(LockAbortException e) {
          transaction.rollback();
       }
@@ -258,6 +321,7 @@ class Test3Thread1 implements Runnable {
       } catch(InterruptedException e) {
          System.out.println(e.toString());
       } catch(LockAbortException e) {
+         System.out.println("Thread 1 rollback");
          transaction.rollback();
       }
    }
@@ -295,6 +359,7 @@ class Test3Thread2 implements Runnable {
       } catch(InterruptedException e) {
          System.out.println(e.toString());
       } catch(LockAbortException e) {
+         System.out.println("Thread 2 rollback");
          transaction.rollback();
       }
    }
@@ -332,6 +397,7 @@ class Test3Thread3 implements Runnable {
       } catch(InterruptedException e) {
          System.out.println(e.toString());
       } catch(LockAbortException e) {
+         System.out.println("Thread 3 rollback");
          transaction.rollback();
       }
    }
@@ -341,6 +407,9 @@ class Test3Thread3 implements Runnable {
  * Classes for Concurrency Test 4
  */
 
+// Pins six blocks, obtains an xLock on block 12, and then waits.
+// Then tries to pin block 15, but cannot because there thread 2
+// will have the remaining buffers in the buffer pool.
 class Test4Thread1 implements Runnable {
    String name;
 
@@ -368,9 +437,11 @@ class Test4Thread1 implements Runnable {
          transaction.pin(block11);
          transaction.pin(block12);
 
+         // Obtain an xLock on block 12 and wait.
          transaction.setInt(block12, 0, 12);
-         Thread.sleep(100);
+         Thread.sleep(200);
 
+         // Try to pin block 15. Deadlock should be detected.
          transaction.pin(block15);
 
          // Unpin the blocks and commit the transaction.
@@ -386,10 +457,13 @@ class Test4Thread1 implements Runnable {
          System.out.println(e.toString());
       } catch(LockAbortException e) {
          transaction.rollback();
+      } catch(BufferAbortException e) {
+         transaction.rollback();
       }
    }
 }
 
+// This thread pins three blocks, waits, and then tries to obtain an xLock on block 12.
 class Test4Thread2 implements Runnable {
    String name;
 
@@ -404,11 +478,14 @@ class Test4Thread2 implements Runnable {
       Block block14 = new Block("student.tbl", 14);
 
       try {
+         // Pin three blocks.
+         Thread.sleep(50);
          transaction.pin(block12);
          transaction.pin(block13);
          transaction.pin(block14);
          Thread.sleep(100);
 
+         // Attempt to obtain an xLock on block 12, will have to wait for thread 1.
          transaction.setInt(block12, 0, 12);
 
          // Unpin the blocks and commit the transaction.
@@ -419,6 +496,175 @@ class Test4Thread2 implements Runnable {
       } catch(InterruptedException e) {
          System.out.println(e.toString());
       } catch(LockAbortException e) {
+         transaction.rollback();
+      } catch(BufferAbortException e) {
+         transaction.rollback();
+      }
+   }
+}
+
+/*
+ * Classes for Concurrency Test 5
+ */
+
+// Obtains and xLock on block 16 and an sLock on block 17.
+class Test5Thread1 implements Runnable {
+   String name;
+
+   public Test5Thread1(String name) {
+      this.name = name;
+   }
+
+   public void run() {
+      Transaction transaction = new Transaction();
+      Block block16 = new Block("student.tbl", 16);
+      Block block17 = new Block("student.tbl", 17);
+
+      try {
+         transaction.pin(block16);
+         transaction.pin(block17);
+
+         // Obtain an xLock on block 16 and an sLock on block 17, then wait.
+         transaction.setInt(block16, 0, 16);
+         transaction.getInt(block17, 0);
+         Thread.sleep(500);
+
+         // Unpin the blocks and commit the transaction.
+         transaction.unpin(block16);
+         transaction.unpin(block17);
+         transaction.commit();
+      } catch(InterruptedException e) {
+         System.out.println(e.toString());
+      } catch(LockAbortException e) {
+         transaction.rollback();
+      } catch(BufferAbortException e) {
+         transaction.rollback();
+      }
+   }
+}
+
+// Obtains an sLock on block 16 and an sLock on block 17.
+class Test5Thread2 implements Runnable {
+   String name;
+
+   public Test5Thread2(String name) {
+      this.name = name;
+   }
+
+   public void run() {
+      Transaction transaction = new Transaction();
+      Block block16 = new Block("student.tbl", 16);
+      Block block17 = new Block("student.tbl", 17);
+
+      try {
+         Thread.sleep(100);
+         transaction.pin(block16);
+         transaction.pin(block17);
+
+         // Will have to wait for thread 1 to finish with the blocks.
+         transaction.getInt(block16, 0);
+         transaction.setInt(block17, 0, 17);
+
+         // Unpin the blocks and commit the transaction.
+         transaction.unpin(block16);
+         transaction.unpin(block17);
+         transaction.commit();
+      } catch(InterruptedException e) {
+         System.out.println(e.toString());
+      } catch(LockAbortException e) {
+         transaction.rollback();
+      } catch(BufferAbortException e) {
+         transaction.rollback();
+      }
+   }
+}
+
+/*
+ * Classes for concurrency test 6.
+ */
+
+// Pins 7 blocks and waits.
+class Test6Thread1 implements Runnable {
+   String name;
+
+   public Test6Thread1(String name) {
+      this.name = name;
+   }
+
+   public void run() {
+      Transaction transaction = new Transaction();
+      Block block18 = new Block("student.tbl", 18);
+      Block block19 = new Block("student.tbl", 19);
+      Block block20 = new Block("student.tbl", 20);
+      Block block21 = new Block("student.tbl", 21);
+      Block block22 = new Block("student.tbl", 22);
+      Block block23 = new Block("student.tbl", 23);
+      Block block24 = new Block("student.tbl", 24);
+
+      try {
+         // Pin 7 blocks.
+         transaction.pin(block18);
+         transaction.pin(block19);
+         transaction.pin(block20);
+         transaction.pin(block21);
+         transaction.pin(block22);
+         transaction.pin(block23);
+         transaction.pin(block24);
+
+         Thread.sleep(200);
+
+         // Unpin the blocks and commit the transaction.
+         transaction.unpin(block18);
+         transaction.unpin(block19);
+         transaction.unpin(block20);
+         transaction.unpin(block21);
+         transaction.unpin(block22);
+         transaction.unpin(block23);
+         transaction.unpin(block24);
+         transaction.commit();
+      } catch(InterruptedException e) {
+         System.out.println(e.toString());
+      } catch(LockAbortException e) {
+         transaction.rollback();
+      } catch(BufferAbortException e) {
+         transaction.rollback();
+      }
+   }
+}
+
+// Pins two blocks unrelated to those thread 1 is using.
+class Test6Thread2 implements Runnable {
+   String name;
+
+   public Test6Thread2(String name) {
+      this.name = name;
+   }
+
+   public void run() {
+      Transaction transaction = new Transaction();
+      Block block25 = new Block("student.tbl", 25);
+      Block block26 = new Block("student.tbl", 26);
+
+      try {
+         Thread.sleep(100);
+
+         // Pins two blocks, will have to wait for thread 1 to pin block 26.
+         transaction.pin(block25);
+         transaction.pin(block26);
+
+         // Write to blocks 25 and 26 so that it can be tested that it successfully pinned the blocks.
+         transaction.setInt(block25, 0, 25);
+         transaction.setInt(block26, 0, 26);
+
+         // Unpin the blocks and commit the transaction.
+         transaction.unpin(block25);
+         transaction.unpin(block26);
+         transaction.commit();
+      } catch(InterruptedException e) {
+         System.out.println(e.toString());
+      } catch(LockAbortException e) {
+         transaction.rollback();
+      } catch(BufferAbortException e) {
          transaction.rollback();
       }
    }

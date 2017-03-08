@@ -15,11 +15,11 @@ public class BufferManagerTests {
       TableInfo tableInfo = new TableInfo("student", schema);
       RecordFormatter recordFormatter = new RecordFormatter(tableInfo);
 
-      Buffer buffer1 = bufferManager.pinNew("student.tbl", recordFormatter);
-      Buffer buffer2 = bufferManager.pinNew("student.tbl", recordFormatter);
-      Buffer buffer3 = bufferManager.pinNew("student.tbl", recordFormatter);
-      Buffer buffer4 = bufferManager.pinNew("student.tbl", recordFormatter);
-      Buffer buffer5 = bufferManager.pinNew("student.tbl", recordFormatter);
+      Buffer buffer1 = bufferManager.pinNew("student.tbl", recordFormatter, 0);
+      Buffer buffer2 = bufferManager.pinNew("student.tbl", recordFormatter, 0);
+      Buffer buffer3 = bufferManager.pinNew("student.tbl", recordFormatter, 0);
+      Buffer buffer4 = bufferManager.pinNew("student.tbl", recordFormatter, 0);
+      Buffer buffer5 = bufferManager.pinNew("student.tbl", recordFormatter, 0);
 
       buffer1.setInt(0, 1, 0, 0);
       buffer1.setInt(5, 2, 0, 0);
@@ -50,15 +50,15 @@ public class BufferManagerTests {
       // We have the program sleep to ensure the buffers
       // have different last used times.
       try {
-         bufferManager.unpin(buffer4);
-         bufferManager.unpin(buffer1);
-         bufferManager.unpin(buffer5);
+         bufferManager.unpin(buffer4, 0);
+         bufferManager.unpin(buffer1, 0);
+         bufferManager.unpin(buffer5, 0);
       } catch(Exception e) {
          e.printStackTrace();
       }
 
       // This should replace buffer 4.
-      Buffer replacement = bufferManager.pinNew("student.tbl", recordFormatter);
+      Buffer replacement = bufferManager.pinNew("student.tbl", recordFormatter, 0);
       assertEquals("Buffer 4 should have value 0 at offset 0", buffer4.getInt(0), 0);
       assertEquals("Buffer 1 should have value 1 at offset 0", buffer1.getInt(0), 1);
       assertEquals("Buffer 5 should have value 4 at offset 0", buffer5.getInt(0), 5);
@@ -67,7 +67,7 @@ public class BufferManagerTests {
       buffer4.setInt(0, 4, 0, 0);
 
       // This should replace buffer 1
-      Buffer replacement1 = bufferManager.pinNew("student.tbl", recordFormatter);
+      Buffer replacement1 = bufferManager.pinNew("student.tbl", recordFormatter, 0);
       assertEquals("Buffer 4 should have value 4 at offset 0", buffer4.getInt(0), 4);
       assertEquals("Buffer 1 should have value 0 at offset 0", buffer1.getInt(0), 0);
       assertEquals("Buffer 5 should have value 5 at offset 0", buffer5.getInt(0), 5);
@@ -75,7 +75,7 @@ public class BufferManagerTests {
       // Set a value for buffer 1 so that we will know if it is replaced.
       buffer1.setInt(0, 1, 0, 0);
 
-      Buffer replacement2 = bufferManager.pinNew("student.tbl", recordFormatter);
+      Buffer replacement2 = bufferManager.pinNew("student.tbl", recordFormatter, 0);
       assertEquals("Buffer 4 should have value 4 at offset 0", buffer4.getInt(0), 4);
       assertEquals("Buffer 1 should have value 1 at offset 0", buffer1.getInt(0), 1);
       assertEquals("Buffer 5 should have value 0 at offset 0", buffer5.getInt(0), 0);

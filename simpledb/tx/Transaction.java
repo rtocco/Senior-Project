@@ -35,7 +35,7 @@ public class Transaction {
    public Transaction() {
       txnum       = nextTxNumber();
       recoveryMgr = new RecoveryMgr(txnum);
-      concurMgr   = new ConcurrencyMgr();
+      concurMgr   = new ConcurrencyMgr(txnum);
    }
 
    public int getTxNum() {
@@ -51,7 +51,7 @@ public class Transaction {
    public void commit() {
       recoveryMgr.commit();
       concurMgr.release();
-      myBuffers.unpinAll();
+      myBuffers.unpinAll(txnum);
       System.out.println("transaction " + txnum + " committed");
    }
 
@@ -65,7 +65,7 @@ public class Transaction {
    public void rollback() {
       recoveryMgr.rollback();
       concurMgr.release();
-      myBuffers.unpinAll();
+      myBuffers.unpinAll(txnum);
       System.out.println("transaction " + txnum + " rolled back");
    }
 
@@ -88,7 +88,7 @@ public class Transaction {
     * @param blk a reference to the disk block
     */
    public void pin(Block blk) {
-      myBuffers.pin(blk);
+      myBuffers.pin(blk, txnum);
    }
 
    /**
@@ -98,7 +98,7 @@ public class Transaction {
     * @param blk a reference to the disk block
     */
    public void unpin(Block blk) {
-      myBuffers.unpin(blk);
+      myBuffers.unpin(blk, txnum);
    }
 
    /**
@@ -197,7 +197,7 @@ public class Transaction {
    public Block append(String filename, PageFormatter fmtr) {
       Block dummyblk = new Block(filename, END_OF_FILE);
       concurMgr.xLock(dummyblk);
-      Block blk = myBuffers.pinNew(filename, fmtr);
+      Block blk = myBuffers.pinNew(filename, fmtr, txnum);
       unpin(blk);
       return blk;
    }

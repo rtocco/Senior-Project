@@ -5,21 +5,26 @@ import java.util.*;
 
 /**
  * The concurrency manager for the transaction.
- * Each transaction has its own concurrency manager. 
- * The concurrency manager keeps track of which locks the 
+ * Each transaction has its own concurrency manager.
+ * The concurrency manager keeps track of which locks the
  * transaction currently has, and interacts with the
- * global lock table as needed. 
+ * global lock table as needed.
  * @author Edward Sciore
  */
 public class ConcurrencyMgr {
-   
+
    /**
     * The global lock table.  This variable is static because all transactions
     * share the same table.
     */
    private static LockTable locktbl = new LockTable();
    private Map<Block,String> locks  = new HashMap<Block,String>();
-   
+   private int txnum;
+
+   public ConcurrencyMgr(int txnum) {
+      this.txnum = txnum;
+   }
+
    /**
     * Obtains an SLock on the block, if necessary.
     * The method will ask the lock table for an SLock
@@ -28,11 +33,11 @@ public class ConcurrencyMgr {
     */
    public void sLock(Block blk) {
       if (locks.get(blk) == null) {
-         locktbl.sLock(blk);
+         locktbl.sLock(blk, txnum);
          locks.put(blk, "S");
       }
    }
-   
+
    /**
     * Obtains an XLock on the block, if necessary.
     * If the transaction does not have an XLock on that block,
@@ -43,21 +48,21 @@ public class ConcurrencyMgr {
    public void xLock(Block blk) {
       if (!hasXLock(blk)) {
          sLock(blk);
-         locktbl.xLock(blk);
+         locktbl.xLock(blk, txnum);
          locks.put(blk, "X");
       }
    }
-   
+
    /**
     * Releases all locks by asking the lock table to
     * unlock each one.
     */
    public void release() {
       for (Block blk : locks.keySet())
-         locktbl.unlock(blk);
+         locktbl.unlock(blk, txnum);
       locks.clear();
    }
-   
+
    private boolean hasXLock(Block blk) {
       String locktype = locks.get(blk);
       return locktype != null && locktype.equals("X");

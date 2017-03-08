@@ -28,7 +28,7 @@ public class Tests {
       setUpDB();
 
       // Run unit tests.
-      // runBufferTests();
+      runBufferTests();
       runTransactionTests();
 
       // Kill server.
