@@ -52,7 +52,8 @@ public class CommandLineTests {
         }
     }
 
-    static void query(String input) throws SQLException {
+    static void query(String input) {
+      try {
         ResultSet resultSet = statement.executeQuery(input);
         ResultSetMetaData metaData = resultSet.getMetaData();
 
@@ -71,9 +72,16 @@ public class CommandLineTests {
             }
             System.out.println();
         }
+      } catch(SQLException e) {
+        System.out.println(e.toString());
+      }
     }
 
-    static void update(String input) throws SQLException {
+    static void update(String input) {
+      try {
         statement.executeUpdate(input);
+      } catch(SQLException e) {
+        System.out.println(e.toString());
+      }
     }
 }
