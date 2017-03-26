@@ -13,14 +13,14 @@ import java.util.*;
  */
 public class Schema {
    private Map<String,FieldInfo> info = new HashMap<String,FieldInfo>();
-   
+
    /**
     * Creates an empty schema.
     * Field information can be added to a schema
-    * via the five addXXX methods. 
+    * via the five addXXX methods.
     */
    public Schema() {}
-   
+
    /**
     * Adds a field to the schema having a specified
     * name, type, and length.
@@ -33,7 +33,7 @@ public class Schema {
    public void addField(String fldname, int type, int length) {
       info.put(fldname, new FieldInfo(type, length));
    }
-   
+
    /**
     * Adds an integer field to the schema.
     * @param fldname the name of the field
@@ -41,7 +41,7 @@ public class Schema {
    public void addIntField(String fldname) {
       addField(fldname, INTEGER, 0);
    }
-   
+
    /**
     * Adds a string field to the schema.
     * The length is the conceptual length of the field.
@@ -53,7 +53,7 @@ public class Schema {
    public void addStringField(String fldname, int length) {
       addField(fldname, VARCHAR, length);
    }
-   
+
    /**
     * Adds a field to the schema having the same
     * type and length as the corresponding field
@@ -66,7 +66,7 @@ public class Schema {
       int length = sch.length(fldname);
       addField(fldname, type, length);
    }
-   
+
    /**
     * Adds all of the fields in the specified schema
     * to the current schema.
@@ -75,7 +75,7 @@ public class Schema {
    public void addAll(Schema sch) {
       info.putAll(sch.info);
    }
-   
+
    /**
     * Returns a collection containing the name of
     * each field in the schema.
@@ -84,7 +84,7 @@ public class Schema {
    public Collection<String> fields() {
       return info.keySet();
    }
-   
+
    /**
     * Returns true if the specified field
     * is in the schema
@@ -94,7 +94,7 @@ public class Schema {
    public boolean hasField(String fldname) {
       return fields().contains(fldname);
    }
-   
+
    /**
     * Returns the type of the specified field, using the
     * constants in {@link java.sql.Types}.
@@ -104,7 +104,7 @@ public class Schema {
    public int type(String fldname) {
       return info.get(fldname).type;
    }
-   
+
    /**
     * Returns the conceptual length of the specified field.
     * If the field is not a string field, then
@@ -115,7 +115,7 @@ public class Schema {
    public int length(String fldname) {
       return info.get(fldname).length;
    }
-   
+
    class FieldInfo {
       int type, length;
       public FieldInfo(int type, int length) {

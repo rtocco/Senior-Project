@@ -10,49 +10,52 @@ import simpledb.record.Schema;
  */
 public class Parser {
    private Lexer lex;
-   
+
    public Parser(String s) {
       lex = new Lexer(s);
    }
-   
+
 // Methods for parsing predicates, terms, expressions, constants, and fields
-   
+
    public String field() {
       return lex.eatId();
    }
-   
+
    public Constant constant() {
       if (lex.matchStringConstant())
          return new StringConstant(lex.eatStringConstant());
       else
          return new IntConstant(lex.eatIntConstant());
    }
-   
+
    public Expression expression() {
       if (lex.matchId())
          return new FieldNameExpression(field());
       else
          return new ConstantExpression(constant());
    }
-   
+
    public Term term() {
       Expression lhs = expression();
       lex.eatDelim('=');
       Expression rhs = expression();
       return new Term(lhs, rhs);
    }
-   
+
    public Predicate predicate() {
       Predicate pred = new Predicate(term());
       if (lex.matchKeyword("and")) {
          lex.eatKeyword("and");
-         pred.conjoinWith(predicate());
+         pred.conjoinWith(predicate(), "and");
+      } else if(lex.matchKeyword("or")) {
+         lex.eatKeyword("or");
+         pred.conjoinWith(predicate(), "or");
       }
       return pred;
    }
-   
+
 // Methods for parsing queries
-   
+
    public QueryData query() {
       lex.eatKeyword("select");
       Collection<String> fields = selectList();
@@ -65,7 +68,7 @@ public class Parser {
       }
       return new QueryData(fields, tables, pred);
    }
-   
+
    private Collection<String> selectList() {
       Collection<String> L = new ArrayList<String>();
       L.add(field());
@@ -75,7 +78,7 @@ public class Parser {
       }
       return L;
    }
-   
+
    private Collection<String> tableList() {
       Collection<String> L = new ArrayList<String>();
       L.add(lex.eatId());
@@ -85,9 +88,9 @@ public class Parser {
       }
       return L;
    }
-   
+
 // Methods for parsing the various update commands
-   
+
    public Object updateCmd() {
       if (lex.matchKeyword("insert"))
          return insert();
@@ -98,7 +101,7 @@ public class Parser {
       else
          return create();
    }
-   
+
    private Object create() {
       lex.eatKeyword("create");
       if (lex.matchKeyword("table"))
@@ -108,9 +111,9 @@ public class Parser {
       else
          return createIndex();
    }
-   
+
 // Method for parsing delete commands
-   
+
    public DeleteData delete() {
       lex.eatKeyword("delete");
       lex.eatKeyword("from");
@@ -122,9 +125,9 @@ public class Parser {
       }
       return new DeleteData(tblname, pred);
    }
-   
+
 // Methods for parsing insert commands
-   
+
    public InsertData insert() {
       lex.eatKeyword("insert");
       lex.eatKeyword("into");
@@ -138,7 +141,7 @@ public class Parser {
       lex.eatDelim(')');
       return new InsertData(tblname, flds, vals);
    }
-   
+
    private List<String> fieldList() {
       List<String> L = new ArrayList<String>();
       L.add(field());
@@ -148,7 +151,7 @@ public class Parser {
       }
       return L;
    }
-   
+
    private List<Constant> constList() {
       List<Constant> L = new ArrayList<Constant>();
       L.add(constant());
@@ -158,9 +161,9 @@ public class Parser {
       }
       return L;
    }
-   
+
 // Method for parsing modify commands
-   
+
    public ModifyData modify() {
       lex.eatKeyword("update");
       String tblname = lex.eatId();
@@ -175,9 +178,9 @@ public class Parser {
       }
       return new ModifyData(tblname, fldname, newval, pred);
    }
-   
+
 // Method for parsing create table commands
-   
+
    public CreateTableData createTable() {
       lex.eatKeyword("table");
       String tblname = lex.eatId();
@@ -186,7 +189,7 @@ public class Parser {
       lex.eatDelim(')');
       return new CreateTableData(tblname, sch);
    }
-   
+
    private Schema fieldDefs() {
       Schema schema = fieldDef();
       if (lex.matchDelim(',')) {
@@ -196,12 +199,12 @@ public class Parser {
       }
       return schema;
    }
-   
+
    private Schema fieldDef() {
       String fldname = field();
       return fieldType(fldname);
    }
-   
+
    private Schema fieldType(String fldname) {
       Schema schema = new Schema();
       if (lex.matchKeyword("int")) {
@@ -217,9 +220,9 @@ public class Parser {
       }
       return schema;
    }
-   
+
 // Method for parsing create view commands
-   
+
    public CreateViewData createView() {
       lex.eatKeyword("view");
       String viewname = lex.eatId();
@@ -227,10 +230,10 @@ public class Parser {
       QueryData qd = query();
       return new CreateViewData(viewname, qd);
    }
-   
-   
+
+
 //  Method for parsing create index commands
-   
+
    public CreateIndexData createIndex() {
       lex.eatKeyword("index");
       String idxname = lex.eatId();
@@ -242,4 +245,3 @@ public class Parser {
       return new CreateIndexData(idxname, tblname, fldname);
    }
 }
-

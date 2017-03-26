@@ -1,7 +1,9 @@
 package simpledb.query;
 
 import simpledb.record.Schema;
+import simpledb.parse.BadSyntaxException;
 import java.util.*;
+
 /**
  * A predicate is a Boolean combination of terms.
  * @author Edward Sciore
@@ -9,12 +11,13 @@ import java.util.*;
  */
 public class Predicate {
    private List<Term> terms = new ArrayList<Term>();
-   
+   private String conjunctionType = "";
+
    /**
     * Creates an empty predicate, corresponding to "true".
     */
    public Predicate() {}
-   
+
    /**
     * Creates a predicate containing a single term.
     * @param t the term
@@ -22,16 +25,21 @@ public class Predicate {
    public Predicate(Term t) {
       terms.add(t);
    }
-   
+
    /**
     * Modifies the predicate to be the conjunction of
     * itself and the specified predicate.
     * @param pred the other predicate
     */
-   public void conjoinWith(Predicate pred) {
-      terms.addAll(pred.terms);
+   public void conjoinWith(Predicate pred, String conjunction) {
+      if(pred.getConjunctionType().equals("") || pred.getConjunctionType().equals(conjunction)) {
+         conjunctionType = conjunction;
+         terms.addAll(pred.terms);
+      } else {
+         throw new BadSyntaxException();
+      }
    }
-   
+
    /**
     * Returns true if the predicate evaluates to true
     * with respect to the specified scan.
@@ -39,27 +47,40 @@ public class Predicate {
     * @return true if the predicate is true in the scan
     */
    public boolean isSatisfied(Scan s) {
-      for (Term t : terms)
-         if (!t.isSatisfied(s))
+      // If the conjunctions are or's.
+      if(conjunctionType.equals("or")) {
+         for(Term t : terms) {
+            if(t.isSatisfied(s)) {
+               return true;
+            }
+         }
          return false;
-      return true;
+
+         // If there are 0 or 1 terms or the conjunctions are and's.
+      } else {
+         for (Term t : terms) {
+            if (!t.isSatisfied(s))
+            return false;
+         }
+         return true;
+      }
    }
-   
-   /** 
-    * Calculates the extent to which selecting on the predicate 
+
+   /**
+    * Calculates the extent to which selecting on the predicate
     * reduces the number of records output by a query.
     * For example if the reduction factor is 2, then the
     * predicate cuts the size of the output in half.
     * @param p the query's plan
     * @return the integer reduction factor.
-    */ 
+    */
    public int reductionFactor(Plan p) {
       int factor = 1;
       for (Term t : terms)
          factor *= t.reductionFactor(p);
       return factor;
    }
-   
+
    /**
     * Returns the subpredicate that applies to the specified schema.
     * @param sch the schema
@@ -75,10 +96,10 @@ public class Predicate {
       else
          return result;
    }
-   
+
    /**
     * Returns the subpredicate consisting of terms that apply
-    * to the union of the two specified schemas, 
+    * to the union of the two specified schemas,
     * but not to either schema separately.
     * @param sch1 the first schema
     * @param sch2 the second schema
@@ -99,7 +120,7 @@ public class Predicate {
       else
          return result;
    }
-   
+
    /**
     * Determines if there is a term of the form "F=c"
     * where F is the specified field and c is some constant.
@@ -116,7 +137,7 @@ public class Predicate {
       }
       return null;
    }
-   
+
    /**
     * Determines if there is a term of the form "F1=F2"
     * where F1 is the specified field and F2 is another field.
@@ -133,10 +154,14 @@ public class Predicate {
       }
       return null;
    }
-   
+
+   public String getConjunctionType() {
+      return conjunctionType;
+   }
+
    public String toString() {
       Iterator<Term> iter = terms.iterator();
-      if (!iter.hasNext()) 
+      if (!iter.hasNext())
          return "";
       String result = iter.next().toString();
       while (iter.hasNext())
