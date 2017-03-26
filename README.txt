@@ -8,14 +8,15 @@ To Do List:
    Done - Implement an LRU replacement algorithm in the Buffer Manager.
       Currently, the naive approach is used.
 
-   - Modify deadlock detection to search for deadlocks via a graph, as opposed
+   Done - Modify deadlock detection to search for deadlocks via a graph, as opposed
       to having transactions timeout after a while. Also consider improving the
       mechanism for rescheduling transactions once a block is set free.
 
-   - Merge in the indexing extension.
-
    - Extend the subset of SQL currently implemented. Right now, only the simple
       create, delete, update, and select statements are usable.
+
+      - Or terms are now allowed in select statements.
+      - Character * can now be used to select all fields of a query.
 
 
 

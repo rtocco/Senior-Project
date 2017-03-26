@@ -12,7 +12,7 @@ import java.util.*;
 public class ProjectScan implements Scan {
    private Scan s;
    private Collection<String> fieldlist;
-   
+
    /**
     * Creates a project scan having the specified
     * underlying scan and field list.
@@ -23,40 +23,40 @@ public class ProjectScan implements Scan {
       this.s = s;
       this.fieldlist = fieldlist;
    }
-   
+
    public void beforeFirst() {
       s.beforeFirst();
    }
-   
+
    public boolean next() {
       return s.next();
    }
-   
+
    public void close() {
       s.close();
    }
-   
+
    public Constant getVal(String fldname) {
       if (hasField(fldname))
          return s.getVal(fldname);
       else
          throw new RuntimeException("field " + fldname + " not found.");
    }
-   
+
    public int getInt(String fldname) {
       if (hasField(fldname))
          return s.getInt(fldname);
       else
          throw new RuntimeException("field " + fldname + " not found.");
    }
-   
+
    public String getString(String fldname) {
       if (hasField(fldname))
          return s.getString(fldname);
       else
          throw new RuntimeException("field " + fldname + " not found.");
    }
-   
+
    /**
     * Returns true if the specified field
     * is in the projection list.

@@ -13,12 +13,12 @@ public class TableInfo {
    private Map<String,Integer> offsets;
    private int recordlen;
    private String tblname;
-   
+
    /**
     * Creates a TableInfo object, given a table name
     * and schema. The constructor calculates the
     * physical offset of each field.
-    * This constructor is used when a table is created. 
+    * This constructor is used when a table is created.
     * @param tblname the name of the table
     * @param schema the schema of the table's records
     */
@@ -33,9 +33,9 @@ public class TableInfo {
       }
       recordlen = pos;
    }
-   
+
    /**
-    * Creates a TableInfo object from the 
+    * Creates a TableInfo object from the
     * specified metadata.
     * This constructor is used when the metadata
     * is retrieved from the catalog.
@@ -50,7 +50,7 @@ public class TableInfo {
       this.offsets   = offsets;
       this.recordlen = recordlen;
    }
-   
+
    /**
     * Returns the filename assigned to this table.
     * Currently, the filename is the table name
@@ -60,7 +60,7 @@ public class TableInfo {
    public String fileName() {
       return tblname + ".tbl";
    }
-   
+
    /**
     * Returns the schema of the table's records
     * @return the table's record schema
@@ -68,7 +68,7 @@ public class TableInfo {
    public Schema schema() {
       return schema;
    }
-   
+
    /**
     * Returns the offset of a specified field within a record
     * @param fldname the name of the field
@@ -77,7 +77,7 @@ public class TableInfo {
    public int offset(String fldname) {
       return offsets.get(fldname);
    }
-   
+
    /**
     * Returns the length of a record, in bytes.
     * @return the length in bytes of a record
@@ -85,7 +85,7 @@ public class TableInfo {
    public int recordLength() {
       return recordlen;
    }
-   
+
    private int lengthInBytes(String fldname) {
       int fldtype = schema.type(fldname);
       if (fldtype == INTEGER)

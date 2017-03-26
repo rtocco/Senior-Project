@@ -122,4 +122,38 @@ public class ParserTests {
       }
       assertTrue("Or: Should throw a Bad Syntax Exception.", exceptionThrown);
    }
+
+   @Test
+   public void starField() {
+      System.out.println("\nStar Field Test");
+      try {
+         Parser parser = new Parser("select * from hotels");
+         QueryData data = parser.query();
+         QueryPlanner planner = new BasicQueryPlanner();
+         Transaction tx = new Transaction();
+         Plan plan = planner.createPlan(data, tx);
+         Scan scan = plan.open();
+
+         ArrayList<Integer> hotelIDs = new ArrayList<Integer>();
+         ArrayList<String> hotelNames = new ArrayList<String>();
+         ArrayList<Integer> prices = new ArrayList<Integer>();
+         while(scan.next()) {
+            hotelIDs.add(scan.getInt("hotelid"));
+            hotelNames.add(scan.getString("hotelname"));
+            prices.add(scan.getInt("price"));
+         }
+         assertTrue("ID 1 should be in results", hotelIDs.contains(1));
+         assertTrue("ID 2 should be in results", hotelIDs.contains(2));
+         assertTrue("ID 3 should be in results", hotelIDs.contains(3));
+         assertTrue("Marriot should be in results", hotelNames.contains("Marriot"));
+         assertTrue("Hilton should be in results", hotelNames.contains("Hilton"));
+         assertTrue("Holiday Inn should be in results", hotelNames.contains("Holiday Inn"));
+         assertTrue("Price of 100 should be in the results", prices.contains(100));
+         assertTrue("Price of 150 should be in the results", prices.contains(150));
+
+      } catch(Exception e) {
+         e.printStackTrace();
+         assertTrue("Or: Should not throw an exception.", false);
+      }
+   }
 }

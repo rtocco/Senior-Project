@@ -57,8 +57,18 @@ public class Parser {
 // Methods for parsing queries
 
    public QueryData query() {
+      boolean allFields = false;
+      Collection<String> fields = null;
+
       lex.eatKeyword("select");
-      Collection<String> fields = selectList();
+
+      if(lex.matchKeyword("*")) {
+         allFields = true;
+         lex.eatKeyword("*");
+      } else {
+         fields = selectList();
+      }
+
       lex.eatKeyword("from");
       Collection<String> tables = tableList();
       Predicate pred = new Predicate();
@@ -66,7 +76,12 @@ public class Parser {
          lex.eatKeyword("where");
          pred = predicate();
       }
-      return new QueryData(fields, tables, pred);
+
+      if(allFields == true) {
+         return new QueryData(tables, pred);
+      } else {
+         return new QueryData(fields, tables, pred);
+      }
    }
 
    private Collection<String> selectList() {
