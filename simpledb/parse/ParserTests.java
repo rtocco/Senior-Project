@@ -156,4 +156,32 @@ public class ParserTests {
          assertTrue("Or: Should not throw an exception.", false);
       }
    }
+
+   @Test
+   public void groupBy() {
+      System.out.println("\nGroup By Test");
+      try {
+         Parser parser = new Parser("select price from hotels group by price");
+         QueryData data = parser.query();
+         QueryPlanner planner = new BasicQueryPlanner();
+         Transaction tx = new Transaction();
+         Plan plan = planner.createPlan(data, tx);
+         Scan scan = plan.open();
+
+         ArrayList<Integer> prices = new ArrayList<Integer>();
+         while(scan.next()) {
+            prices.add(scan.getInt("price"));
+         }
+         assertTrue("Price of 150 should be in the results", prices.contains(150));
+         int num = 0;
+         for(int i = 0; i < prices.size(); i++) {
+            if(prices.get(i) == 100) num++;
+         }
+         assertEquals("Should only contain 1 price of 100", num, 1);
+
+      } catch(Exception e) {
+         e.printStackTrace();
+         assertTrue("Or: Should not throw an exception.", false);
+      }
+   }
 }

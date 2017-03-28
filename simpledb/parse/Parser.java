@@ -59,6 +59,7 @@ public class Parser {
    public QueryData query() {
       boolean allFields = false;
       Collection<String> fields = null;
+      Collection<String> groupByfields = null;
 
       lex.eatKeyword("select");
 
@@ -66,7 +67,7 @@ public class Parser {
          allFields = true;
          lex.eatKeyword("*");
       } else {
-         fields = selectList();
+         fields = columnList();
       }
 
       lex.eatKeyword("from");
@@ -77,19 +78,21 @@ public class Parser {
          pred = predicate();
       }
 
-      if(allFields == true) {
-         return new QueryData(tables, pred);
-      } else {
-         return new QueryData(fields, tables, pred);
+      if(lex.matchKeyword("group")) {
+         lex.eatKeyword("group");
+         lex.eatKeyword("by");
+         groupByfields = columnList();
       }
+
+      return new QueryData(allFields, fields, tables, pred, groupByfields);
    }
 
-   private Collection<String> selectList() {
+   private Collection<String> columnList() {
       Collection<String> L = new ArrayList<String>();
       L.add(field());
       if (lex.matchDelim(',')) {
          lex.eatDelim(',');
-         L.addAll(selectList());
+         L.addAll(columnList());
       }
       return L;
    }

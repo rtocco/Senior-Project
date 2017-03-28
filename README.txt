@@ -17,7 +17,7 @@ To Do List:
 
       - Or terms are now allowed in select statements.
       - Character * can now be used to select all fields of a query.
-
+      - Basic group by functionality implemented.
 
 
 

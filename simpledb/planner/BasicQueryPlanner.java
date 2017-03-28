@@ -3,6 +3,7 @@ package simpledb.planner;
 import simpledb.tx.Transaction;
 import simpledb.query.*;
 import simpledb.parse.*;
+import simpledb.materialize.*;
 import simpledb.server.SimpleDB;
 import java.util.*;
 
@@ -28,15 +29,19 @@ public class BasicQueryPlanner implements QueryPlanner {
             plans.add(new TablePlan(tblname, tx));
       }
 
-      //Step 2: Create the product of all table plans
+      // Create the product of all table plans
       Plan p = plans.remove(0);
       for (Plan nextplan : plans)
          p = new ProductPlan(p, nextplan);
 
-      //Step 3: Add a selection plan for the predicate
+      // Add a selection plan for the predicate
       p = new SelectPlan(p, data.pred());
 
-      //Step 4: Project on the field names
+      if(data.groupByfields() != null) {
+         p = new GroupByPlan(p, data.groupByfields(), new ArrayList<AggregationFn>(), tx);
+      }
+
+      // Project on the field names
       if(!data.allFields()) {
          p = new ProjectPlan(p, data.fields());
       }

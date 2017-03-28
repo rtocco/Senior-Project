@@ -12,26 +12,23 @@ public class QueryData {
    private Collection<String> fields;
    private Collection<String> tables;
    private Predicate pred;
-
-   /**
-    * Save the table list and predicate, this constructor
-    * is called if all fields are selected.
-    */
-   public QueryData(Collection<String> tables, Predicate pred) {
-      allFields = true;
-      this.fields = null;
-      this.tables = tables;
-      this.pred = pred;
-   }
+   private Collection<String> groupByfields;
 
    /**
     * Saves the field and table list and predicate.
     */
-   public QueryData(Collection<String> fields, Collection<String> tables, Predicate pred) {
-      allFields = false;
+   public QueryData(boolean allFields, Collection<String> fields, Collection<String> tables, Predicate pred, Collection<String> groupByfields) {
+      this.allFields = allFields;
       this.fields = fields;
       this.tables = tables;
       this.pred = pred;
+      this.groupByfields = groupByfields;
+
+      if(groupByfields != null) {
+         if(!groupByfields.containsAll(fields)) {
+            throw new BadQueryException();
+         }
+      }
    }
 
    /**
@@ -64,6 +61,13 @@ public class QueryData {
     */
    public Predicate pred() {
       return pred;
+   }
+
+   /**
+    * Returns the fields mentioned in the group by clause.
+    */
+   public Collection<String> groupByfields() {
+      return groupByfields;
    }
 
    public String toString() {
