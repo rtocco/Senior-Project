@@ -33,6 +33,8 @@ public class ParserTests {
          while(scan.next()) {
             hotelNames.add(scan.getString("hotelname"));
          }
+         tx.commit();
+
          assertTrue("Marriot should be in results", hotelNames.contains("Marriot"));
          assertTrue("Hilton should be in results", hotelNames.contains("Hilton"));
          assertTrue("Holiday Inn should be in results", hotelNames.contains("Holiday Inn"));
@@ -67,6 +69,8 @@ public class ParserTests {
             hotelNames.add(scan.getString("hotelname"));
             guestNames.add(scan.getString("guestname"));
          }
+         tx.commit();
+
          assertTrue("Marriot should be in the results", hotelNames.contains("Marriot"));
          assertTrue("Hilton should be in the results", hotelNames.contains("Hilton"));
          assertTrue("Matthew should be in the results", guestNames.contains("Matthew"));
@@ -100,6 +104,8 @@ public class ParserTests {
             hotelNames.add(scan.getString("hotelname"));
             prices.add(scan.getInt("price"));
          }
+         tx.commit();
+
          assertTrue("Marriot should be in results", hotelNames.contains("Marriot"));
          assertTrue("Hilton should be in results", hotelNames.contains("Hilton"));
          assertTrue("Price of 100 should be in the results", prices.contains(100));
@@ -142,6 +148,8 @@ public class ParserTests {
             hotelNames.add(scan.getString("hotelname"));
             prices.add(scan.getInt("price"));
          }
+         tx.commit();
+
          assertTrue("ID 1 should be in results", hotelIDs.contains(1));
          assertTrue("ID 2 should be in results", hotelIDs.contains(2));
          assertTrue("ID 3 should be in results", hotelIDs.contains(3));
@@ -153,7 +161,7 @@ public class ParserTests {
 
       } catch(Exception e) {
          e.printStackTrace();
-         assertTrue("Or: Should not throw an exception.", false);
+         assertTrue("Star Field: Should not throw an exception.", false);
       }
    }
 
@@ -177,11 +185,195 @@ public class ParserTests {
          for(int i = 0; i < prices.size(); i++) {
             if(prices.get(i) == 100) num++;
          }
+         tx.commit();
+
          assertEquals("Should only contain 1 price of 100", num, 1);
 
       } catch(Exception e) {
          e.printStackTrace();
-         assertTrue("Or: Should not throw an exception.", false);
+         assertTrue("Group By: Should not throw an exception.", false);
+      }
+   }
+
+   @Test
+   public void countFunction() {
+      System.out.println("\nCount Function Test");
+      try {
+         Parser parser = new Parser("select price, count(price) from hotels group by price");
+         QueryData data = parser.query();
+         QueryPlanner planner = new BasicQueryPlanner();
+         Transaction tx = new Transaction();
+         Plan plan = planner.createPlan(data, tx);
+         Scan scan = plan.open();
+
+         ArrayList<Integer> prices = new ArrayList<Integer>();
+         int price100 = 0;
+         int price150 = 0;
+         while(scan.next()) {
+            prices.add(scan.getInt("price"));
+            if(scan.getInt("price") == 100) {
+               price100 = scan.getInt("countofprice");
+            } else if(scan.getInt("price") == 150) {
+               price150 = scan.getInt("countofprice");
+            }
+         }
+         tx.commit();
+
+         assertTrue("Price of 150 should be in the results", prices.contains(150));
+         assertEquals("count(100) should be 2", price100, 2);
+         assertEquals("count(150) should be 1", price150, 1);
+
+      } catch(Exception e) {
+         e.printStackTrace();
+         assertTrue("Count: Should not throw an exception.", false);
+      }
+   }
+
+   @Test
+   public void maxFunction() {
+      System.out.println("\nMax Function Test");
+      try {
+         Parser parser = new Parser("select hotel, max(age) from guests group by hotel");
+         QueryData data = parser.query();
+         QueryPlanner planner = new BasicQueryPlanner();
+         Transaction tx = new Transaction();
+         Plan plan = planner.createPlan(data, tx);
+         Scan scan = plan.open();
+
+         ArrayList<String> hotels = new ArrayList<String>();
+         int marriotAge = 0;
+         int hiltonAge = 0;
+         int holidayInnAge = 0;
+         while(scan.next()) {
+            hotels.add(scan.getString("hotel"));
+            if(scan.getString("hotel").equals("Marriot")) {
+               marriotAge = scan.getInt("maxofage");
+            } else if(scan.getString("hotel").equals("Hilton")) {
+               hiltonAge = scan.getInt("maxofage");
+            } else if(scan.getString("hotel").equals("Holiday Inn")) {
+               holidayInnAge = scan.getInt("maxofage");
+            }
+         }
+         tx.commit();
+
+         assertEquals("The max age of a Marriot guest should be 22", marriotAge, 22);
+         assertEquals("The max age of a Hilton guest should be 20", hiltonAge, 20);
+         assertEquals("The max age of a Holiday Inn guest should be 21", holidayInnAge, 21);
+
+      } catch(Exception e) {
+         e.printStackTrace();
+         assertTrue("Max: Should not throw an exception.", false);
+      }
+   }
+
+   @Test
+   public void minFunction() {
+      System.out.println("\nMin Function Test");
+      try {
+         Parser parser = new Parser("select hotel, min(age) from guests group by hotel");
+         QueryData data = parser.query();
+         QueryPlanner planner = new BasicQueryPlanner();
+         Transaction tx = new Transaction();
+         Plan plan = planner.createPlan(data, tx);
+         Scan scan = plan.open();
+
+         ArrayList<String> hotels = new ArrayList<String>();
+         int marriotAge = 0;
+         int hiltonAge = 0;
+         int holidayInnAge = 0;
+         while(scan.next()) {
+            hotels.add(scan.getString("hotel"));
+            if(scan.getString("hotel").equals("Marriot")) {
+               marriotAge = scan.getInt("minofage");
+            } else if(scan.getString("hotel").equals("Hilton")) {
+               hiltonAge = scan.getInt("minofage");
+            } else if(scan.getString("hotel").equals("Holiday Inn")) {
+               holidayInnAge = scan.getInt("minofage");
+            }
+         }
+         tx.commit();
+
+         assertEquals("The min age of a Marriot guest should be 20", marriotAge, 20);
+         assertEquals("The min age of a Hilton guest should be 20", hiltonAge, 20);
+         assertEquals("The min age of a Holiday Inn guest should be 21", holidayInnAge, 21);
+
+      } catch(Exception e) {
+         e.printStackTrace();
+         assertTrue("Min: Should not throw an exception.", false);
+      }
+   }
+
+   @Test
+   public void sumFunction() {
+      System.out.println("\nSum Function Test");
+      try {
+         Parser parser = new Parser("select hotel, sum(age) from guests group by hotel");
+         QueryData data = parser.query();
+         QueryPlanner planner = new BasicQueryPlanner();
+         Transaction tx = new Transaction();
+         Plan plan = planner.createPlan(data, tx);
+         Scan scan = plan.open();
+
+         ArrayList<String> hotels = new ArrayList<String>();
+         int marriotSum = 0;
+         int hiltonSum = 0;
+         int holidayInnSum = 0;
+         while(scan.next()) {
+            hotels.add(scan.getString("hotel"));
+            if(scan.getString("hotel").equals("Marriot")) {
+               marriotSum = scan.getInt("sumofage");
+            } else if(scan.getString("hotel").equals("Hilton")) {
+               hiltonSum = scan.getInt("sumofage");
+            } else if(scan.getString("hotel").equals("Holiday Inn")) {
+               holidayInnSum = scan.getInt("sumofage");
+            }
+         }
+         tx.commit();
+
+         assertEquals("The sum of Marriot guest ages should be 42", marriotSum, 42);
+         assertEquals("The sum of Hilton guest ages should be 20", hiltonSum, 20);
+         assertEquals("The sum of Holiday Inn guest ages should be 21", holidayInnSum, 21);
+
+      } catch(Exception e) {
+         e.printStackTrace();
+         assertTrue("Sum: Should not throw an exception.", false);
+      }
+   }
+
+   @Test
+   public void avgFunction() {
+      System.out.println("\nAvg Function Test");
+      try {
+         Parser parser = new Parser("select hotel, avg(age) from guests group by hotel");
+         QueryData data = parser.query();
+         QueryPlanner planner = new BasicQueryPlanner();
+         Transaction tx = new Transaction();
+         Plan plan = planner.createPlan(data, tx);
+         Scan scan = plan.open();
+
+         ArrayList<String> hotels = new ArrayList<String>();
+         int marriotAvg = 0;
+         int hiltonAvg = 0;
+         int holidayInnAvg = 0;
+         while(scan.next()) {
+            hotels.add(scan.getString("hotel"));
+            if(scan.getString("hotel").equals("Marriot")) {
+               marriotAvg = scan.getInt("avgofage");
+            } else if(scan.getString("hotel").equals("Hilton")) {
+               hiltonAvg = scan.getInt("avgofage");
+            } else if(scan.getString("hotel").equals("Holiday Inn")) {
+               holidayInnAvg = scan.getInt("avgofage");
+            }
+         }
+         tx.commit();
+
+         assertEquals("The avg of Marriot guest ages should be 21", marriotAvg, 21);
+         assertEquals("The avg of Hilton guest ages should be 20", hiltonAvg, 20);
+         assertEquals("The avg of Holiday Inn guest ages should be 21", holidayInnAvg, 21);
+
+      } catch(Exception e) {
+         e.printStackTrace();
+         assertTrue("Sum: Should not throw an exception.", false);
       }
    }
 }

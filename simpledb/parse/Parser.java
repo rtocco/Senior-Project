@@ -2,6 +2,7 @@ package simpledb.parse;
 
 import java.util.*;
 import simpledb.query.*;
+import simpledb.materialize.*;
 import simpledb.record.Schema;
 
 /**
@@ -19,6 +20,52 @@ public class Parser {
 
    public String field() {
       return lex.eatId();
+   }
+
+   public String field(ArrayList<AggregationFn> aggregationFns) {
+      if(lex.matchKeyword("count")) {
+         lex.eatKeyword("count");
+         lex.eatDelim('(');
+         String field = lex.eatId();
+         AggregationFn function = new CountFn(field);
+         aggregationFns.add(function);
+         lex.eatDelim(')');
+         return function.fieldName();
+      } else if(lex.matchKeyword("max")) {
+         lex.eatKeyword("max");
+         lex.eatDelim('(');
+         String field = lex.eatId();
+         AggregationFn function = new MaxFn(field);
+         aggregationFns.add(function);
+         lex.eatDelim(')');
+         return function.fieldName();
+      } else if(lex.matchKeyword("min")) {
+         lex.eatKeyword("min");
+         lex.eatDelim('(');
+         String field = lex.eatId();
+         AggregationFn function = new MinFn(field);
+         aggregationFns.add(function);
+         lex.eatDelim(')');
+         return function.fieldName();
+      } else if(lex.matchKeyword("sum")) {
+         lex.eatKeyword("sum");
+         lex.eatDelim('(');
+         String field = lex.eatId();
+         AggregationFn function = new SumFn(field);
+         aggregationFns.add(function);
+         lex.eatDelim(')');
+         return function.fieldName();
+      } else if(lex.matchKeyword("avg")) {
+         lex.eatKeyword("avg");
+         lex.eatDelim('(');
+         String field = lex.eatId();
+         AggregationFn function = new AvgFn(field);
+         aggregationFns.add(function);
+         lex.eatDelim(')');
+         return function.fieldName();
+      } else {
+         return lex.eatId();
+      }
    }
 
    public Constant constant() {
@@ -60,6 +107,7 @@ public class Parser {
       boolean allFields = false;
       Collection<String> fields = null;
       Collection<String> groupByfields = null;
+      ArrayList<AggregationFn> aggregationFns = new ArrayList<AggregationFn>();
 
       lex.eatKeyword("select");
 
@@ -67,7 +115,7 @@ public class Parser {
          allFields = true;
          lex.eatKeyword("*");
       } else {
-         fields = columnList();
+         fields = columnList(aggregationFns);
       }
 
       lex.eatKeyword("from");
@@ -84,7 +132,7 @@ public class Parser {
          groupByfields = columnList();
       }
 
-      return new QueryData(allFields, fields, tables, pred, groupByfields);
+      return new QueryData(allFields, fields, tables, pred, groupByfields, aggregationFns);
    }
 
    private Collection<String> columnList() {
@@ -93,6 +141,17 @@ public class Parser {
       if (lex.matchDelim(',')) {
          lex.eatDelim(',');
          L.addAll(columnList());
+      }
+      return L;
+   }
+
+   // Get field names, as well as aggregation function fields.
+   private Collection<String> columnList(ArrayList<AggregationFn> aggregationFns) {
+      Collection<String> L = new ArrayList<String>();
+      L.add(field(aggregationFns));
+      if (lex.matchDelim(',')) {
+         lex.eatDelim(',');
+         L.addAll(columnList(aggregationFns));
       }
       return L;
    }

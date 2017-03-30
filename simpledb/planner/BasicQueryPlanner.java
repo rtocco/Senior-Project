@@ -7,6 +7,8 @@ import simpledb.materialize.*;
 import simpledb.server.SimpleDB;
 import java.util.*;
 
+import simpledb.record.*;
+
 /**
  * The simplest, most naive query planner possible.
  * @author Edward Sciore
@@ -38,9 +40,8 @@ public class BasicQueryPlanner implements QueryPlanner {
       p = new SelectPlan(p, data.pred());
 
       if(data.groupByfields() != null) {
-         p = new GroupByPlan(p, data.groupByfields(), new ArrayList<AggregationFn>(), tx);
+         p = new GroupByPlan(p, data.groupByfields(), data.aggregationFns(), tx);
       }
-
       // Project on the field names
       if(!data.allFields()) {
          p = new ProjectPlan(p, data.fields());

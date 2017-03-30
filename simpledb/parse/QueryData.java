@@ -1,6 +1,7 @@
 package simpledb.parse;
 
 import simpledb.query.*;
+import simpledb.materialize.AggregationFn;
 import java.util.*;
 
 /**
@@ -13,19 +14,32 @@ public class QueryData {
    private Collection<String> tables;
    private Predicate pred;
    private Collection<String> groupByfields;
+   private Collection<AggregationFn> aggregationFns;
 
    /**
     * Saves the field and table list and predicate.
     */
-   public QueryData(boolean allFields, Collection<String> fields, Collection<String> tables, Predicate pred, Collection<String> groupByfields) {
+   public QueryData(boolean allFields, Collection<String> fields, Collection<String> tables, Predicate pred, Collection<String> groupByfields, Collection<AggregationFn> aggregationFns) {
       this.allFields = allFields;
       this.fields = fields;
       this.tables = tables;
       this.pred = pred;
       this.groupByfields = groupByfields;
+      this.aggregationFns = aggregationFns;
 
       if(groupByfields != null) {
-         if(!groupByfields.containsAll(fields)) {
+         boolean containsAll = true;
+         Iterator<String> iter = fields.iterator();
+         while(iter.hasNext()) {
+            String field = iter.next();
+            if(!field.contains("count") && !field.contains("max") && !field.contains("min") && !field.contains("sum") && !field.contains("avg")) {
+               if(!groupByfields.contains(field)) {
+                  containsAll = false;
+               }
+            }
+         }
+
+         if(!containsAll) {
             throw new BadQueryException();
          }
       }
@@ -52,6 +66,10 @@ public class QueryData {
     */
    public Collection<String> tables() {
       return tables;
+   }
+
+   public Collection<AggregationFn> aggregationFns() {
+      return aggregationFns;
    }
 
    /**
