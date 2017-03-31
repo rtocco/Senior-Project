@@ -24,48 +24,73 @@ public class Parser {
 
    public String field(ArrayList<AggregationFn> aggregationFns) {
       if(lex.matchKeyword("count")) {
-         lex.eatKeyword("count");
-         lex.eatDelim('(');
-         String field = lex.eatId();
-         AggregationFn function = new CountFn(field);
-         aggregationFns.add(function);
-         lex.eatDelim(')');
-         return function.fieldName();
+         String fieldName = countField(aggregationFns);
+         return fieldName;
       } else if(lex.matchKeyword("max")) {
-         lex.eatKeyword("max");
-         lex.eatDelim('(');
-         String field = lex.eatId();
-         AggregationFn function = new MaxFn(field);
-         aggregationFns.add(function);
-         lex.eatDelim(')');
-         return function.fieldName();
+         String fieldName = maxField(aggregationFns);
+         return fieldName;
       } else if(lex.matchKeyword("min")) {
-         lex.eatKeyword("min");
-         lex.eatDelim('(');
-         String field = lex.eatId();
-         AggregationFn function = new MinFn(field);
-         aggregationFns.add(function);
-         lex.eatDelim(')');
-         return function.fieldName();
+         String fieldName = minField(aggregationFns);
+         return fieldName;
       } else if(lex.matchKeyword("sum")) {
-         lex.eatKeyword("sum");
-         lex.eatDelim('(');
-         String field = lex.eatId();
-         AggregationFn function = new SumFn(field);
-         aggregationFns.add(function);
-         lex.eatDelim(')');
-         return function.fieldName();
+         String fieldName = sumField(aggregationFns);
+         return fieldName;
       } else if(lex.matchKeyword("avg")) {
-         lex.eatKeyword("avg");
-         lex.eatDelim('(');
-         String field = lex.eatId();
-         AggregationFn function = new AvgFn(field);
-         aggregationFns.add(function);
-         lex.eatDelim(')');
-         return function.fieldName();
+         String fieldName = avgField(aggregationFns);
+         return fieldName;
       } else {
          return lex.eatId();
       }
+   }
+
+   private String countField(ArrayList<AggregationFn> aggregationFns) {
+      lex.eatKeyword("count");
+      lex.eatDelim('(');
+      String field = lex.eatId();
+      AggregationFn function = new CountFn(field);
+      aggregationFns.add(function);
+      lex.eatDelim(')');
+      return function.fieldName();
+   }
+
+   private String maxField(ArrayList<AggregationFn> aggregationFns) {
+      lex.eatKeyword("max");
+      lex.eatDelim('(');
+      String field = lex.eatId();
+      AggregationFn function = new MaxFn(field);
+      aggregationFns.add(function);
+      lex.eatDelim(')');
+      return function.fieldName();
+   }
+
+   private String minField(ArrayList<AggregationFn> aggregationFns) {
+      lex.eatKeyword("min");
+      lex.eatDelim('(');
+      String field = lex.eatId();
+      AggregationFn function = new MinFn(field);
+      aggregationFns.add(function);
+      lex.eatDelim(')');
+      return function.fieldName();
+   }
+
+   private String sumField(ArrayList<AggregationFn> aggregationFns) {
+      lex.eatKeyword("sum");
+      lex.eatDelim('(');
+      String field = lex.eatId();
+      AggregationFn function = new SumFn(field);
+      aggregationFns.add(function);
+      lex.eatDelim(')');
+      return function.fieldName();
+   }
+
+   private String avgField(ArrayList<AggregationFn> aggregationFns) {
+      lex.eatKeyword("avg");
+      lex.eatDelim('(');
+      String field = lex.eatId();
+      AggregationFn function = new AvgFn(field);
+      aggregationFns.add(function);
+      lex.eatDelim(')');
+      return function.fieldName();
    }
 
    public Constant constant() {

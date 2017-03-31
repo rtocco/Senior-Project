@@ -39,9 +39,12 @@ public class BasicQueryPlanner implements QueryPlanner {
       // Add a selection plan for the predicate
       p = new SelectPlan(p, data.pred());
 
+      // Group together by certain fields. Materialize first for more efficient
       if(data.groupByfields() != null) {
+         p = new MaterializePlan(p, tx);
          p = new GroupByPlan(p, data.groupByfields(), data.aggregationFns(), tx);
       }
+
       // Project on the field names
       if(!data.allFields()) {
          p = new ProjectPlan(p, data.fields());
