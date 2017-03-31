@@ -43,6 +43,9 @@ public class BasicQueryPlanner implements QueryPlanner {
       if(data.groupByfields() != null) {
          p = new MaterializePlan(p, tx);
          p = new GroupByPlan(p, data.groupByfields(), data.aggregationFns(), tx);
+         if(data.groupPred() != null) {
+            p = new SelectPlan(p, data.groupPred());
+         }
       }
 
       // Project on the field names

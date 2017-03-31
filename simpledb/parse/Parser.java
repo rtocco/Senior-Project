@@ -48,7 +48,9 @@ public class Parser {
       lex.eatDelim('(');
       String field = lex.eatId();
       AggregationFn function = new CountFn(field);
-      aggregationFns.add(function);
+      if(!containsAggFn(aggregationFns, function)) {
+         aggregationFns.add(function);
+      }
       lex.eatDelim(')');
       return function.fieldName();
    }
@@ -58,7 +60,9 @@ public class Parser {
       lex.eatDelim('(');
       String field = lex.eatId();
       AggregationFn function = new MaxFn(field);
-      aggregationFns.add(function);
+      if(!containsAggFn(aggregationFns, function)) {
+         aggregationFns.add(function);
+      }
       lex.eatDelim(')');
       return function.fieldName();
    }
@@ -68,7 +72,9 @@ public class Parser {
       lex.eatDelim('(');
       String field = lex.eatId();
       AggregationFn function = new MinFn(field);
-      aggregationFns.add(function);
+      if(!containsAggFn(aggregationFns, function)) {
+         aggregationFns.add(function);
+      }
       lex.eatDelim(')');
       return function.fieldName();
    }
@@ -78,7 +84,9 @@ public class Parser {
       lex.eatDelim('(');
       String field = lex.eatId();
       AggregationFn function = new SumFn(field);
-      aggregationFns.add(function);
+      if(!containsAggFn(aggregationFns, function)) {
+         aggregationFns.add(function);
+      }
       lex.eatDelim(')');
       return function.fieldName();
    }
@@ -88,9 +96,20 @@ public class Parser {
       lex.eatDelim('(');
       String field = lex.eatId();
       AggregationFn function = new AvgFn(field);
-      aggregationFns.add(function);
+      if(!containsAggFn(aggregationFns, function)) {
+         aggregationFns.add(function);
+      }
       lex.eatDelim(')');
       return function.fieldName();
+   }
+
+   private boolean containsAggFn(ArrayList<AggregationFn> aggregationFns, AggregationFn aggregationFn) {
+      for(AggregationFn function : aggregationFns) {
+         if(aggregationFn.fieldName().equals(function.fieldName())) {
+            return true;
+         }
+      }
+      return false;
    }
 
    public Constant constant() {
@@ -126,6 +145,32 @@ public class Parser {
       return pred;
    }
 
+   public Expression expression(ArrayList<AggregationFn> aggregationFns) {
+      if (lex.matchId() || lex.isKeyword())
+         return new FieldNameExpression(field(aggregationFns));
+      else
+         return new ConstantExpression(constant());
+   }
+
+   public Term term(ArrayList<AggregationFn> aggregationFns) {
+      Expression lhs = expression(aggregationFns);
+      lex.eatDelim('=');
+      Expression rhs = expression(aggregationFns);
+      return new Term(lhs, rhs);
+   }
+
+   public Predicate predicate(ArrayList<AggregationFn> aggregationFns) {
+      Predicate pred = new Predicate(term(aggregationFns));
+      if (lex.matchKeyword("and")) {
+         lex.eatKeyword("and");
+         pred.conjoinWith(predicate(aggregationFns), "and");
+      } else if(lex.matchKeyword("or")) {
+         lex.eatKeyword("or");
+         pred.conjoinWith(predicate(aggregationFns), "or");
+      }
+      return pred;
+   }
+
 // Methods for parsing queries
 
    public QueryData query() {
@@ -157,7 +202,13 @@ public class Parser {
          groupByfields = columnList();
       }
 
-      return new QueryData(allFields, fields, tables, pred, groupByfields, aggregationFns);
+      Predicate groupPred = null;
+      if(lex.matchKeyword("having")) {
+         lex.eatKeyword("having");
+         groupPred = predicate(aggregationFns);
+      }
+
+      return new QueryData(allFields, fields, tables, pred, groupPred, groupByfields, aggregationFns);
    }
 
    private Collection<String> columnList() {

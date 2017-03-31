@@ -61,6 +61,10 @@ public class Lexer {
       return tok.ttype == StreamTokenizer.TT_WORD && tok.sval.equals(w);
    }
 
+   public boolean isKeyword() {
+      return tok.ttype == StreamTokenizer.TT_WORD && keywords.contains(tok.sval);
+   }
+
    /**
     * Returns true if the current token is a legal identifier.
     * @return true if the current token is an identifier

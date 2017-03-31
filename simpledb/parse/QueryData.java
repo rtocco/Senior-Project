@@ -13,17 +13,19 @@ public class QueryData {
    private Collection<String> fields;
    private Collection<String> tables;
    private Predicate pred;
+   private Predicate groupPred;
    private Collection<String> groupByfields;
    private Collection<AggregationFn> aggregationFns;
 
    /**
     * Saves the field and table list and predicate.
     */
-   public QueryData(boolean allFields, Collection<String> fields, Collection<String> tables, Predicate pred, Collection<String> groupByfields, Collection<AggregationFn> aggregationFns) {
+   public QueryData(boolean allFields, Collection<String> fields, Collection<String> tables, Predicate pred, Predicate groupPred, Collection<String> groupByfields, Collection<AggregationFn> aggregationFns) {
       this.allFields = allFields;
       this.fields = fields;
       this.tables = tables;
       this.pred = pred;
+      this.groupPred = groupPred;
       this.groupByfields = groupByfields;
       this.aggregationFns = aggregationFns;
 
@@ -79,6 +81,13 @@ public class QueryData {
     */
    public Predicate pred() {
       return pred;
+   }
+
+   /**
+    * Returns the predicate for after a group by clause.
+    */
+   public Predicate groupPred() {
+      return groupPred;
    }
 
    /**

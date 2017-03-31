@@ -373,7 +373,37 @@ public class ParserTests {
 
       } catch(Exception e) {
          e.printStackTrace();
-         assertTrue("Sum: Should not throw an exception.", false);
+         assertTrue("Avg: Should not throw an exception.", false);
+      }
+   }
+
+   @Test
+   public void having() {
+      System.out.println("\nHaving Test");
+      try {
+         Parser parser = new Parser("select hotel, avg(age) from guests group by hotel having avg(age)=21 and sum(age)=42");
+         QueryData data = parser.query();
+         QueryPlanner planner = new BasicQueryPlanner();
+         Transaction tx = new Transaction();
+         Plan plan = planner.createPlan(data, tx);
+         Scan scan = plan.open();
+
+         ArrayList<String> hotels = new ArrayList<String>();
+         ArrayList<Integer> averageAges = new ArrayList<Integer>();
+         while(scan.next()) {
+            hotels.add(scan.getString("hotel"));
+            averageAges.add(scan.getInt("avgofage"));
+         }
+         tx.commit();
+
+         assertTrue("Marriot should be in hotels.", hotels.contains("Marriot"));
+         assertTrue("Hilton should not be in hotels", !hotels.contains("Hilton"));
+         assertTrue("Holiday Inn should not be in hotels", !hotels.contains("Holiday Inn"));
+
+         assertTrue("21 should be an average age", averageAges.contains(21));
+      } catch(Exception e) {
+         e.printStackTrace();
+         assertTrue("Having: Should not throw an exception.", false);
       }
    }
 }
