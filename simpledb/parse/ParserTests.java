@@ -406,4 +406,41 @@ public class ParserTests {
          assertTrue("Having: Should not throw an exception.", false);
       }
    }
+
+   @Test
+   public void innerJoin() {
+      System.out.println("\nInner Join Test");
+      try {
+         Parser parser = new Parser("select guestName, hotelName from hotels join guests on hotel=hotelName");
+         QueryData data = parser.query();
+         QueryPlanner planner = new BasicQueryPlanner();
+         Transaction tx = new Transaction();
+         Plan plan = planner.createPlan(data, tx);
+         Scan scan = plan.open();
+
+         ArrayList<String> guestNames = new ArrayList<String>();
+         while(scan.next()) {
+            String name = scan.getString("guestname");
+            guestNames.add(name);
+            if(name.equals("Matthew")) {
+               assertEquals("Hotel name should be Marriot", scan.getString("hotelname"), "Marriot");
+            } else if(name.equals("Mark")) {
+               assertEquals("Hotel name should be Hilton", scan.getString("hotelname"), "Hilton");
+            } else if(name.equals("Luke")) {
+               assertEquals("Hotel name should be Holiday Inn", scan.getString("hotelname"), "Holiday Inn");
+            } else if(name.equals("John")) {
+               assertEquals("Hotel name should be Marriot", scan.getString("hotelname"), "Marriot");
+            }
+         }
+         tx.commit();
+
+         assertTrue("Guest names should include Matthew", guestNames.contains("Matthew"));
+         assertTrue("Guest names should include Mark", guestNames.contains("Mark"));
+         assertTrue("Guest names should include Luke", guestNames.contains("Luke"));
+         assertTrue("Guest names should include John", guestNames.contains("John"));
+      } catch(Exception e) {
+         e.printStackTrace();
+         assertTrue("Inner Join: Should not throw an exception.", false);
+      }
+   }
 }

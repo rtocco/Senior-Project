@@ -20,6 +20,7 @@ To Do List:
       - Basic group by functionality implemented.
       - Aggregation functions implemented.
       - Having keyword implemented.
+      - Join/Inner Join keywords work now.
 
 
 

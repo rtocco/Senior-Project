@@ -37,7 +37,9 @@ public class BasicQueryPlanner implements QueryPlanner {
          p = new ProductPlan(p, nextplan);
 
       // Add a selection plan for the predicate
-      p = new SelectPlan(p, data.pred());
+      if(data.joinType().equals("") || data.joinType().equals("inner")) {
+         p = new SelectPlan(p, data.pred());
+      }
 
       // Group together by certain fields. Materialize first for more efficient
       if(data.groupByfields() != null) {

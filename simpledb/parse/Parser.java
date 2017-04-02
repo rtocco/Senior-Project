@@ -189,10 +189,15 @@ public class Parser {
       }
 
       lex.eatKeyword("from");
-      Collection<String> tables = tableList();
+      ArrayList<String> tables = new ArrayList<String>();
+      String joinType = tableList(tables);
+      // Collection<String> tables = tableList();
       Predicate pred = new Predicate();
-      if (lex.matchKeyword("where")) {
+      if (lex.matchKeyword("where") && (joinType.equals("inner") || joinType.equals(""))) {
          lex.eatKeyword("where");
+         pred = predicate();
+      } else if(lex.matchKeyword("on") && joinType.equals("inner")) {
+         lex.eatKeyword("on");
          pred = predicate();
       }
 
@@ -208,7 +213,7 @@ public class Parser {
          groupPred = predicate(aggregationFns);
       }
 
-      return new QueryData(allFields, fields, tables, pred, groupPred, groupByfields, aggregationFns);
+      return new QueryData(allFields, fields, tables, joinType, pred, groupPred, groupByfields, aggregationFns);
    }
 
    private Collection<String> columnList() {
@@ -232,14 +237,37 @@ public class Parser {
       return L;
    }
 
-   private Collection<String> tableList() {
-      Collection<String> L = new ArrayList<String>();
-      L.add(lex.eatId());
+   // private Collection<String> tableList() {
+   //    Collection<String> L = new ArrayList<String>();
+   //    L.add(lex.eatId());
+   //    if (lex.matchDelim(',')) {
+   //       lex.eatDelim(',');
+   //       L.addAll(tableList());
+   //    }
+   //    return L;
+   // }
+
+   private String tableList(ArrayList<String> tables) {
+      tables.add(lex.eatId());
+      String joinType = "";
       if (lex.matchDelim(',')) {
          lex.eatDelim(',');
-         L.addAll(tableList());
+         joinType = tableList(tables);
+         if(!joinType.equals("inner") && !joinType.equals("")) throw new BadSyntaxException();
+         return "inner";
+      } else if(lex.matchKeyword("inner")) {
+         lex.eatKeyword("inner");
+         lex.eatKeyword("join");
+         joinType = tableList(tables);
+         if(!joinType.equals("inner") && !joinType.equals("")) throw new BadSyntaxException();
+         return "inner";
+      } else if(lex.matchKeyword("join")) {
+         lex.eatKeyword("join");
+         joinType = tableList(tables);
+         if(!joinType.equals("inner") && !joinType.equals("")) throw new BadSyntaxException();
+         return "inner";
       }
-      return L;
+      return joinType;
    }
 
 // Methods for parsing the various update commands

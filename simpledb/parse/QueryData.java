@@ -12,6 +12,7 @@ public class QueryData {
    private boolean allFields;
    private Collection<String> fields;
    private Collection<String> tables;
+   private String joinType;
    private Predicate pred;
    private Predicate groupPred;
    private Collection<String> groupByfields;
@@ -20,10 +21,11 @@ public class QueryData {
    /**
     * Saves the field and table list and predicate.
     */
-   public QueryData(boolean allFields, Collection<String> fields, Collection<String> tables, Predicate pred, Predicate groupPred, Collection<String> groupByfields, Collection<AggregationFn> aggregationFns) {
+   public QueryData(boolean allFields, Collection<String> fields, Collection<String> tables, String joinType, Predicate pred, Predicate groupPred, Collection<String> groupByfields, Collection<AggregationFn> aggregationFns) {
       this.allFields = allFields;
       this.fields = fields;
       this.tables = tables;
+      this.joinType = joinType;
       this.pred = pred;
       this.groupPred = groupPred;
       this.groupByfields = groupByfields;
@@ -68,6 +70,14 @@ public class QueryData {
     */
    public Collection<String> tables() {
       return tables;
+   }
+
+   /**
+    * Returns the type of join for this query,
+    * or a blank string if there is no join.
+    */
+   public String joinType() {
+      return joinType;
    }
 
    public Collection<AggregationFn> aggregationFns() {
