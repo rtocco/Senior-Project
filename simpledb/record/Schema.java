@@ -62,13 +62,6 @@ public class Schema {
     * @param sch the other schema
     */
    public void add(String fldname, Schema sch) {
-      // if(fldname.equals("countofprice")) {
-      //    Collection<String> keys = sch.fields();
-      //    Iterator<String> iter = keys.iterator();
-      //    while(iter.hasNext()) {
-      //       System.out.println(iter.next());
-      //    }
-      // }
       int type   = sch.type(fldname);
       int length = sch.length(fldname);
       addField(fldname, type, length);

@@ -253,19 +253,16 @@ public class Parser {
       if (lex.matchDelim(',')) {
          lex.eatDelim(',');
          joinType = tableList(tables);
-         if(!joinType.equals("inner") && !joinType.equals("")) throw new BadSyntaxException();
-         return "inner";
+         return "";
       } else if(lex.matchKeyword("inner")) {
          lex.eatKeyword("inner");
          lex.eatKeyword("join");
-         joinType = tableList(tables);
-         if(!joinType.equals("inner") && !joinType.equals("")) throw new BadSyntaxException();
-         return "inner";
+         tables.add(lex.eatId());
+         joinType = "inner";
       } else if(lex.matchKeyword("join")) {
          lex.eatKeyword("join");
-         joinType = tableList(tables);
-         if(!joinType.equals("inner") && !joinType.equals("")) throw new BadSyntaxException();
-         return "inner";
+         tables.add(lex.eatId());
+         joinType = "inner";
       }
       return joinType;
    }

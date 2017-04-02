@@ -31,10 +31,20 @@ public class BasicQueryPlanner implements QueryPlanner {
             plans.add(new TablePlan(tblname, tx));
       }
 
-      // Create the product of all table plans
+      // Create the product of all table plans or perform a join on tables if necessary.
       Plan p = plans.remove(0);
-      for (Plan nextplan : plans)
-         p = new ProductPlan(p, nextplan);
+      if(data.joinType().equals("")) {
+         for (Plan nextplan : plans)
+            p = new ProductPlan(p, nextplan);
+      } else if(data.joinType().equals("inner")) {
+         String[] fields = data.pred().toString().split("=");
+         Plan otherPlan = plans.remove(0);
+         if(p.schema().hasField(fields[0]) && otherPlan.schema().hasField(fields[1])) {
+            p = new MergeJoinPlan(p, otherPlan, fields[0], fields[1], tx);
+         } else if(p.schema().hasField(fields[1]) && otherPlan.schema().hasField(fields[0])) {
+            p = new MergeJoinPlan(p, otherPlan, fields[1], fields[0], tx);
+         }
+      }
 
       // Add a selection plan for the predicate
       if(data.joinType().equals("") || data.joinType().equals("inner")) {
