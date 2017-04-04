@@ -17,7 +17,7 @@ public class SortScan implements Scan {
    private RecordComparator comp;
    private boolean hasmore1, hasmore2=false;
    private List<RID> savedposition;
-   
+
    /**
     * Creates a sort scan, given a list of 1 or 2 runs.
     * If there is only 1 run, then s2 will be null and
@@ -34,7 +34,7 @@ public class SortScan implements Scan {
          hasmore2 = s2.next();
       }
    }
-   
+
    /**
     * Positions the scan before the first record in sorted order.
     * Internally, it moves to the first record of each underlying scan.
@@ -51,7 +51,7 @@ public class SortScan implements Scan {
          hasmore2 = s2.next();
       }
    }
-   
+
    /**
     * Moves to the next record in sorted order.
     * First, the current scan is moved to the next record.
@@ -66,7 +66,7 @@ public class SortScan implements Scan {
          else if (currentscan == s2)
             hasmore2 = s2.next();
       }
-      
+
       if (!hasmore1 && !hasmore2)
          return false;
       else if (hasmore1 && hasmore2) {
@@ -81,7 +81,7 @@ public class SortScan implements Scan {
          currentscan = s2;
       return true;
    }
-   
+
    /**
     * Closes the two underlying scans.
     * @see simpledb.query.Scan#close()
@@ -91,7 +91,7 @@ public class SortScan implements Scan {
       if (s2 != null)
          s2.close();
    }
-   
+
    /**
     * Gets the Constant value of the specified field
     * of the current scan.
@@ -100,7 +100,7 @@ public class SortScan implements Scan {
    public Constant getVal(String fldname) {
       return currentscan.getVal(fldname);
    }
-   
+
    /**
     * Gets the integer value of the specified field
     * of the current scan.
@@ -109,7 +109,7 @@ public class SortScan implements Scan {
    public int getInt(String fldname) {
       return currentscan.getInt(fldname);
    }
-   
+
    /**
     * Gets the string value of the specified field
     * of the current scan.
@@ -118,7 +118,7 @@ public class SortScan implements Scan {
    public String getString(String fldname) {
       return currentscan.getString(fldname);
    }
-   
+
    /**
     * Returns true if the specified field is in the current scan.
     * @see simpledb.query.Scan#hasField(java.lang.String)
@@ -126,7 +126,7 @@ public class SortScan implements Scan {
    public boolean hasField(String fldname) {
       return currentscan.hasField(fldname);
    }
-   
+
    /**
     * Saves the position of the current record,
     * so that it can be restored at a later time.
@@ -136,7 +136,7 @@ public class SortScan implements Scan {
       RID rid2 = (s2 == null) ? null : s2.getRid();
       savedposition = Arrays.asList(rid1,rid2);
    }
-   
+
    /**
     * Moves the scan to its previously-saved position.
     */

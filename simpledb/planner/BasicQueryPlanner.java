@@ -36,18 +36,30 @@ public class BasicQueryPlanner implements QueryPlanner {
       if(data.joinType().equals("")) {
          for (Plan nextplan : plans)
             p = new ProductPlan(p, nextplan);
-      } else if(data.joinType().equals("inner")) {
+      } else {
          String[] fields = data.pred().toString().split("=");
          Plan otherPlan = plans.remove(0);
+         String field1 = "";
+         String field2 = "";
+
+         // Make sure the fields are passed in in the right order.
          if(p.schema().hasField(fields[0]) && otherPlan.schema().hasField(fields[1])) {
-            p = new MergeJoinPlan(p, otherPlan, fields[0], fields[1], tx);
+            field1 = fields[0];
+            field2 = fields[1];
          } else if(p.schema().hasField(fields[1]) && otherPlan.schema().hasField(fields[0])) {
-            p = new MergeJoinPlan(p, otherPlan, fields[1], fields[0], tx);
+            field1 = fields[1];
+            field2 = fields[0];
+         }
+
+         if(data.joinType().equals("inner")) {
+            p = new MergeJoinPlan(p, otherPlan, field1, field2, tx);
+         } else if(data.joinType().equals("full")) {
+            p = new FullJoinPlan(p, otherPlan, field1, field2, tx);
          }
       }
 
-      // Add a selection plan for the predicate
-      if(data.joinType().equals("") || data.joinType().equals("inner")) {
+      // Add a selection plan for the predicate. Right now joins do not support predicates.
+      if(!data.joinType().equals("inner") && !data.joinType().equals("full")) {
          p = new SelectPlan(p, data.pred());
       }
 

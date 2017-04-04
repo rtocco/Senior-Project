@@ -193,10 +193,10 @@ public class Parser {
       String joinType = tableList(tables);
       // Collection<String> tables = tableList();
       Predicate pred = new Predicate();
-      if (lex.matchKeyword("where") && (joinType.equals("inner") || joinType.equals(""))) {
+      if (lex.matchKeyword("where") && joinType.equals("")) {
          lex.eatKeyword("where");
          pred = predicate();
-      } else if(lex.matchKeyword("on") && joinType.equals("inner")) {
+      } else if(lex.matchKeyword("on") && (joinType.equals("inner") || joinType.equals("full"))) {
          lex.eatKeyword("on");
          pred = predicate();
       }
@@ -237,23 +237,13 @@ public class Parser {
       return L;
    }
 
-   // private Collection<String> tableList() {
-   //    Collection<String> L = new ArrayList<String>();
-   //    L.add(lex.eatId());
-   //    if (lex.matchDelim(',')) {
-   //       lex.eatDelim(',');
-   //       L.addAll(tableList());
-   //    }
-   //    return L;
-   // }
-
    private String tableList(ArrayList<String> tables) {
       tables.add(lex.eatId());
       String joinType = "";
       if (lex.matchDelim(',')) {
          lex.eatDelim(',');
          joinType = tableList(tables);
-         return "";
+         joinType = "";
       } else if(lex.matchKeyword("inner")) {
          lex.eatKeyword("inner");
          lex.eatKeyword("join");
@@ -263,6 +253,12 @@ public class Parser {
          lex.eatKeyword("join");
          tables.add(lex.eatId());
          joinType = "inner";
+      } else if(lex.matchKeyword("full")) {
+         lex.eatKeyword("full");
+         lex.eatKeyword("outer");
+         lex.eatKeyword("join");
+         tables.add(lex.eatId());
+         joinType = "full";
       }
       return joinType;
    }

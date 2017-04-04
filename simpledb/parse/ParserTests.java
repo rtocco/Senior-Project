@@ -443,4 +443,44 @@ public class ParserTests {
          assertTrue("Inner Join: Should not throw an exception.", false);
       }
    }
+
+   @Test
+   public void fullOuterJoin() {
+      System.out.println("\nFull Join Test");
+      try {
+         Parser parser = new Parser("select guestID, hotelID, guestName from hotels full outer join guests on hotelID=guestID");
+         QueryData data = parser.query();
+         QueryPlanner planner = new BasicQueryPlanner();
+         Transaction tx = new Transaction();
+         Plan plan = planner.createPlan(data, tx);
+         Scan scan = plan.open();
+
+         ArrayList<String> guestNames = new ArrayList<String>();
+         while(scan.next()) {
+            String name = scan.getString("guestname");
+            guestNames.add(name);
+            if(name.equals("Matthew")) {
+               assertEquals("Hotel ID should be 1", scan.getInt("hotelid"), 1);
+               assertEquals("Guest ID should be 1", scan.getInt("guestid"), 1);
+            } else if(name.equals("Mark")) {
+               assertEquals("Hotel ID should be 2", scan.getInt("hotelid"), 2);
+               assertEquals("Guest ID should be 2", scan.getInt("guestid"), 2);
+            } else if(name.equals("Luke")) {
+               assertEquals("Hotel ID should be 3", scan.getInt("hotelid"), 3);
+               assertEquals("Guest ID should be 3", scan.getInt("guestid"), 3);
+            } else if(name.equals("John")) {
+               assertEquals("Guest ID should be 4", scan.getInt("guestid"), 4);
+            }
+         }
+         tx.commit();
+
+         assertTrue("Guest names should include Matthew", guestNames.contains("Matthew"));
+         assertTrue("Guest names should include Mark", guestNames.contains("Mark"));
+         assertTrue("Guest names should include Luke", guestNames.contains("Luke"));
+         assertTrue("Guest names should include John", guestNames.contains("John"));
+      } catch(Exception e) {
+         e.printStackTrace();
+         assertTrue("Inner Join: Should not throw an exception.", false);
+      }
+   }
 }
