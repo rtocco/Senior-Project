@@ -55,11 +55,15 @@ public class BasicQueryPlanner implements QueryPlanner {
             p = new MergeJoinPlan(p, otherPlan, field1, field2, tx);
          } else if(data.joinType().equals("full")) {
             p = new FullJoinPlan(p, otherPlan, field1, field2, tx);
+         } else if(data.joinType().equals("left")) {
+            p = new LeftJoinPlan(p, otherPlan, field1, field2, tx);
+         } else if(data.joinType().equals("right")) {
+            p = new RightJoinPlan(p, otherPlan, field1, field2, tx);
          }
       }
 
       // Add a selection plan for the predicate. Right now joins do not support predicates.
-      if(!data.joinType().equals("inner") && !data.joinType().equals("full")) {
+      if(data.joinType().equals("")) {
          p = new SelectPlan(p, data.pred());
       }
 

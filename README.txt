@@ -21,7 +21,7 @@ To Do List:
       - Aggregation functions implemented.
       - Having keyword implemented.
       - Join/Inner Join keywords work now.
-      - Full Outer Join implemented.
+      - Full Outer, Left, and Right Joins implemented.
 
 
 

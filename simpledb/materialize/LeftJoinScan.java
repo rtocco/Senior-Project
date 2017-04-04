@@ -3,28 +3,27 @@ package simpledb.materialize;
 import simpledb.query.*;
 
 /**
- * The Scan class for the <i>fulljoin</i> operator.
+ * The Scan class for the <i>leftjoin</i> operator.
  * @author Edward Sciore
  */
-public class FullJoinScan implements Scan {
+public class LeftJoinScan implements Scan {
    private Scan s1;
    private SortScan s2;
    private String fldname1, fldname2;
    private Constant joinval = null;
-   private boolean s1Null = true;
    private boolean s2Null = true;
    private boolean s1Done = false;
    private boolean s2Done = false;
    private boolean begun = false;
 
    /**
-    * Creates a fulljoin scan for the two underlying sorted scans.
+    * Creates a leftjoin scan for the two underlying sorted scans.
     * @param s1 the LHS sorted scan
     * @param s2 the RHS sorted scan
     * @param fldname1 the LHS join field
     * @param fldname2 the RHS join field
     */
-   public FullJoinScan(Scan s1, SortScan s2, String fldname1, String fldname2) {
+   public LeftJoinScan(Scan s1, SortScan s2, String fldname1, String fldname2) {
       this.s1 = s1;
       this.s2 = s2;
       this.fldname1 = fldname1;
@@ -55,18 +54,18 @@ public class FullJoinScan implements Scan {
    /**
     * Moves to the next record.  This is where the action is.
     * <P>
-    * If it is the first record or one of the scans has no more records, calls
-    * an accessory function for dealing with that. Otherwise, compares the scan
-    * values from the previous calls to next(). If one is less than the other,
-    * it moves that one forward. Otherwise, it moves the right side forward and
-    * checks whether or not it is still the same value.
+    * If it is the first record or the right scan has no more records, calls
+    * an accessory function for dealing with that. If the left scan has no more
+    * records, return false. Otherwise, compares the scan values from the
+    * previous calls to next(). If the left side value is less than the right,
+    * it moves the left one forward, and then moves the right side forward until
+    * it is greater than or equal to the left side. Otherwise, it moves the
+    * right side forward and checks whether or not it is still the same value.
     */
    public boolean next() {
-      s1Null = false;
       s2Null = false;
-
       if(begun == false) return firstNext();
-      if(s1Done == true) return noS1Next();
+      if(s1Done == true) return false;
       if(s2Done == true) return noS2Next();
 
       Constant v1 = s1.getVal(fldname1);
@@ -75,34 +74,14 @@ public class FullJoinScan implements Scan {
       // If the left side value is less than the right side value.
       if(v1.compareTo(v2) < 0) {
          if(s1.next()) {
-            Constant nextV1 = s1.getVal(fldname1);
-            if(nextV1.compareTo(v2) < 0) {
-               s2Null = true;
-            } else if(nextV1.compareTo(v2) > 0) {
-               s1Null = true;
-            }
-            s2.savePosition();
+            // Move the right side forward until it is greater than or equal to the left.
+            findRightScanValue();
             return true;
          }
          s1Done = true;
-         return true;
+         return false;
 
-      // If the right side value is less than the left side value.
-      } else if(v1.compareTo(v2) > 0) {
-         if(s2.next()) {
-            Constant nextV2 = s1.getVal(fldname2);
-            if(nextV2.compareTo(v1) < 0) {
-               s1Null = true;
-            } else if(nextV2.compareTo(v1) > 0) {
-               s2Null = true;
-            }
-            s2.savePosition();
-            return true;
-         }
-         s2Done = true;
-         return true;
-
-      // If the left and right side values are the same.
+      // If the right side value is the same as the left side value.
       } else {
          // Move the right side forward and check if it's still the same value.
          if(s2.next()) {
@@ -118,20 +97,12 @@ public class FullJoinScan implements Scan {
                      s2.restorePosition();
                      return true;
                   }
-
-                  if(nextV1.compareTo(nextV2) < 0) {
-                     s2Null = true;
-                     return true;
-                  } else if(nextV1.compareTo(nextV2) > 0) {
-                     s1Null = true;
-                     return true;
-                  } else {
-                     s2.savePosition();
-                     return true;
-                  }
+                  // Move the right scan forward until it is greater than or equal to the left.
+                  findRightScanValue();
+                  return true;
                }
                s1Done = true;
-               return true;
+               return false;
             } else {
                return true;
             }
@@ -149,7 +120,6 @@ public class FullJoinScan implements Scan {
             return true;
          }
          s1Done = true;
-         s2Done = true;
          return false;
       }
    }
@@ -167,7 +137,8 @@ public class FullJoinScan implements Scan {
                s2Null = true;
                return true;
             } else if(v1.compareTo(v2) > 0) {
-               s1Null = true;
+               // Move the right scan forward until it is greater than or equal to the left.
+               findRightScanValue();
                return true;
             } else {
                s2.savePosition();
@@ -177,22 +148,7 @@ public class FullJoinScan implements Scan {
          s2Done = true;
          return true;
       }
-
       s1Done = true;
-      if(s2.next()) {
-         return true;
-      }
-      return false;
-   }
-
-   /**
-    * There are no more records in the left
-    * scan. Only get values from the right.
-    */
-   private boolean noS1Next() {
-      if(s2.next()) {
-         return true;
-      }
       return false;
    }
 
@@ -204,7 +160,32 @@ public class FullJoinScan implements Scan {
       if(s1.next()) {
          return true;
       }
+      s1Done = true;
       return false;
+   }
+
+   /**
+    * Loop through the right side scan until the value
+    * is greater than or equal to the left value.
+    */
+   private void findRightScanValue() {
+      boolean greater = false;
+      while(!greater) {
+         Constant v1 = s1.getVal(fldname1);
+         Constant v2 = s2.getVal(fldname2);
+         if(v1.compareTo(v2) < 0) {
+            s2Null = true;
+            greater = true;
+         } else if(v1.compareTo(v2) > 0) {
+            if(!s2.next()) {
+               s2Done = true;
+               greater = true;
+            }
+         } else {
+            s2.savePosition();
+            greater = true;
+         }
+      }
    }
 
    /**
@@ -215,7 +196,7 @@ public class FullJoinScan implements Scan {
     */
    public Constant getVal(String fldname) {
       if (s1.hasField(fldname)) {
-         if(s1Null || s1Done) {
+         if(s1Done) {
             return null;
          } else {
             return s1.getVal(fldname);

@@ -196,7 +196,7 @@ public class Parser {
       if (lex.matchKeyword("where") && joinType.equals("")) {
          lex.eatKeyword("where");
          pred = predicate();
-      } else if(lex.matchKeyword("on") && (joinType.equals("inner") || joinType.equals("full"))) {
+      } else if(lex.matchKeyword("on") && !joinType.equals("")) {
          lex.eatKeyword("on");
          pred = predicate();
       }
@@ -259,6 +259,16 @@ public class Parser {
          lex.eatKeyword("join");
          tables.add(lex.eatId());
          joinType = "full";
+      } else if(lex.matchKeyword("left")) {
+         lex.eatKeyword("left");
+         lex.eatKeyword("join");
+         tables.add(lex.eatId());
+         joinType = "left";
+      } else if(lex.matchKeyword("right")) {
+         lex.eatKeyword("right");
+         lex.eatKeyword("join");
+         tables.add(lex.eatId());
+         joinType = "right";
       }
       return joinType;
    }

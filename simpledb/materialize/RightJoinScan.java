@@ -3,28 +3,27 @@ package simpledb.materialize;
 import simpledb.query.*;
 
 /**
- * The Scan class for the <i>fulljoin</i> operator.
+ * The Scan class for the <i>rightjoin</i> operator.
  * @author Edward Sciore
  */
-public class FullJoinScan implements Scan {
-   private Scan s1;
-   private SortScan s2;
+public class RightJoinScan implements Scan {
+   private SortScan s1;
+   private Scan s2;
    private String fldname1, fldname2;
    private Constant joinval = null;
    private boolean s1Null = true;
-   private boolean s2Null = true;
    private boolean s1Done = false;
    private boolean s2Done = false;
    private boolean begun = false;
 
    /**
-    * Creates a fulljoin scan for the two underlying sorted scans.
+    * Creates a rightjoin scan for the two underlying sorted scans.
     * @param s1 the LHS sorted scan
     * @param s2 the RHS sorted scan
     * @param fldname1 the LHS join field
     * @param fldname2 the RHS join field
     */
-   public FullJoinScan(Scan s1, SortScan s2, String fldname1, String fldname2) {
+   public RightJoinScan(SortScan s1, Scan s2, String fldname1, String fldname2) {
       this.s1 = s1;
       this.s2 = s2;
       this.fldname1 = fldname1;
@@ -55,100 +54,71 @@ public class FullJoinScan implements Scan {
    /**
     * Moves to the next record.  This is where the action is.
     * <P>
-    * If it is the first record or one of the scans has no more records, calls
-    * an accessory function for dealing with that. Otherwise, compares the scan
-    * values from the previous calls to next(). If one is less than the other,
-    * it moves that one forward. Otherwise, it moves the right side forward and
-    * checks whether or not it is still the same value.
+    * If it is the first record or the right scan has no more records, calls
+    * an accessory function for dealing with that. If the right scan has no more
+    * records, return false. Otherwise, compares the scan values from the
+    * previous calls to next(). If the right side value is less than the left,
+    * it moves the right one forward, and then moves the right side forward until
+    * it is greater than or equal to the right side. Otherwise, it moves the
+    * left side forward and checks whether or not it is still the same value.
     */
    public boolean next() {
       s1Null = false;
-      s2Null = false;
-
       if(begun == false) return firstNext();
+      if(s2Done == true) return false;
       if(s1Done == true) return noS1Next();
-      if(s2Done == true) return noS2Next();
 
       Constant v1 = s1.getVal(fldname1);
       Constant v2 = s2.getVal(fldname2);
 
-      // If the left side value is less than the right side value.
-      if(v1.compareTo(v2) < 0) {
-         if(s1.next()) {
-            Constant nextV1 = s1.getVal(fldname1);
-            if(nextV1.compareTo(v2) < 0) {
-               s2Null = true;
-            } else if(nextV1.compareTo(v2) > 0) {
-               s1Null = true;
-            }
-            s2.savePosition();
-            return true;
-         }
-         s1Done = true;
-         return true;
-
       // If the right side value is less than the left side value.
-      } else if(v1.compareTo(v2) > 0) {
+      if(v2.compareTo(v1) < 0) {
          if(s2.next()) {
-            Constant nextV2 = s1.getVal(fldname2);
-            if(nextV2.compareTo(v1) < 0) {
-               s1Null = true;
-            } else if(nextV2.compareTo(v1) > 0) {
-               s2Null = true;
-            }
-            s2.savePosition();
+            // Move the left side forward until it is greater than or equal to the right.
+            findLeftScanValue();
             return true;
          }
          s2Done = true;
-         return true;
+         return false;
 
-      // If the left and right side values are the same.
+      // If the left side value is the same as the right side value.
       } else {
-         // Move the right side forward and check if it's still the same value.
-         if(s2.next()) {
-            Constant nextV2 = s2.getVal(fldname2);
-            if(nextV2.compareTo(v1) > 0) {
-               // The next right hand side value is different.
-               // We move the left scan to the next record.
-               if(s1.next()) {
-                  Constant nextV1 = s1.getVal(fldname1);
-                  // If the next left value is the same, move the right
+         // Move the left side forward and check if it's still the same value.
+         if(s1.next()) {
+            Constant nextV1 = s1.getVal(fldname1);
+            if(nextV1.compareTo(v2) > 0) {
+               // The next left hand side value is different.
+               // We move the right scan to the next record.
+               if(s2.next()) {
+                  Constant nextV2 = s2.getVal(fldname2);
+                  // If the next right value is the same, move the left
                   // scan back to the first position having that value.
-                  if(v1.compareTo(nextV1) == 0) {
-                     s2.restorePosition();
+                  if(v2.compareTo(nextV2) == 0) {
+                     s1.restorePosition();
                      return true;
                   }
-
-                  if(nextV1.compareTo(nextV2) < 0) {
-                     s2Null = true;
-                     return true;
-                  } else if(nextV1.compareTo(nextV2) > 0) {
-                     s1Null = true;
-                     return true;
-                  } else {
-                     s2.savePosition();
-                     return true;
-                  }
+                  // Move the left scan forward until it is greater than or equal to the right.
+                  findLeftScanValue();
+                  return true;
                }
-               s1Done = true;
-               return true;
+               s2Done = true;
+               return false;
             } else {
                return true;
             }
          }
-         // There are no more records in the right scan. If the next left side
-         // record has the same value we must move the right scan back to the
+         // There are no more records in the left scan. If the next right side
+         // record has the same value we must move the left scan back to the
          // first record having that value.
-         if(s1.next()) {
-            Constant nextV1 = s1.getVal(fldname1);
-            if(v1.compareTo(nextV1) == 0) {
-               s2.restorePosition();
+         if(s2.next()) {
+            Constant nextV2 = s2.getVal(fldname2);
+            if(v2.compareTo(nextV2) == 0) {
+               s1.restorePosition();
                return true;
             }
-            s2Done = true;
+            s1Done = true;
             return true;
          }
-         s1Done = true;
          s2Done = true;
          return false;
       }
@@ -159,29 +129,26 @@ public class FullJoinScan implements Scan {
     */
    private boolean firstNext() {
       begun = true;
-      if(s1.next()) {
-         if(s2.next()) {
+      if(s2.next()) {
+         if(s1.next()) {
             Constant v1 = s1.getVal(fldname1);
             Constant v2 = s2.getVal(fldname2);
-            if(v1.compareTo(v2) < 0) {
-               s2Null = true;
-               return true;
-            } else if(v1.compareTo(v2) > 0) {
+            if(v2.compareTo(v1) < 0) {
                s1Null = true;
                return true;
+            } else if(v2.compareTo(v1) > 0) {
+               // Move the left scan forward until it is greater than or equal to the right.
+               findLeftScanValue();
+               return true;
             } else {
-               s2.savePosition();
+               s1.savePosition();
                return true;
             }
          }
-         s2Done = true;
+         s1Done = true;
          return true;
       }
-
-      s1Done = true;
-      if(s2.next()) {
-         return true;
-      }
+      s2Done = true;
       return false;
    }
 
@@ -193,18 +160,32 @@ public class FullJoinScan implements Scan {
       if(s2.next()) {
          return true;
       }
+      s2Done = true;
       return false;
    }
 
    /**
-    * There are no more records in the right
-    * scan. Only get values from the left.
+    * Loop through the left side scan until the value
+    * is greater than or equal to the right value.
     */
-   private boolean noS2Next() {
-      if(s1.next()) {
-         return true;
+   private void findLeftScanValue() {
+      boolean greater = false;
+      while(!greater) {
+         Constant v1 = s1.getVal(fldname1);
+         Constant v2 = s2.getVal(fldname2);
+         if(v2.compareTo(v1) < 0) {
+            s1Null = true;
+            greater = true;
+         } else if(v2.compareTo(v1) > 0) {
+            if(!s1.next()) {
+               s1Done = true;
+               greater = true;
+            }
+         } else {
+            s1.savePosition();
+            greater = true;
+         }
       }
-      return false;
    }
 
    /**
@@ -214,17 +195,17 @@ public class FullJoinScan implements Scan {
     * @see simpledb.query.Scan#getVal(java.lang.String)
     */
    public Constant getVal(String fldname) {
-      if (s1.hasField(fldname)) {
+      if (s2.hasField(fldname)) {
+         if(s2Done) {
+            return null;
+         } else {
+            return s2.getVal(fldname);
+         }
+      } else {
          if(s1Null || s1Done) {
             return null;
          } else {
             return s1.getVal(fldname);
-         }
-      } else {
-         if(s2Null || s2Done) {
-            return null;
-         } else {
-            return s2.getVal(fldname);
          }
       }
    }
