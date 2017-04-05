@@ -156,6 +156,6 @@ public class Lexer {
                                "insert", "into", "values", "delete", "update", "set",
                                "create", "table", "int", "varchar", "view", "as", "index", "on",
                                "count", "max", "min", "sum", "avg", "inner", "full", "outer", "left",
-                               "right", "join");
+                               "right", "join", "order", "by", "asc", "desc");
    }
 }

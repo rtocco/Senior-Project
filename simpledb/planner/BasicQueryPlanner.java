@@ -76,6 +76,12 @@ public class BasicQueryPlanner implements QueryPlanner {
          }
       }
 
+      if(!data.orderBy().equals("")) {
+         List<String> orderFields = new ArrayList<String>();
+         orderFields.add(data.orderBy());
+         p = new SortPlan(p, orderFields, tx);
+      }
+
       // Project on the field names
       if(!data.allFields()) {
          p = new ProjectPlan(p, data.fields());

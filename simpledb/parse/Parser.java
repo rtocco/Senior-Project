@@ -213,7 +213,15 @@ public class Parser {
          groupPred = predicate(aggregationFns);
       }
 
-      return new QueryData(allFields, fields, tables, joinType, pred, groupPred, groupByfields, aggregationFns);
+      String orderBy = "";
+      String orderDir = "";
+      if(lex.matchKeyword("order")) {
+         lex.eatKeyword("order");
+         lex.eatKeyword("by");
+         orderBy = lex.eatId();
+      }
+
+      return new QueryData(allFields, fields, tables, joinType, pred, groupPred, groupByfields, aggregationFns, orderBy);
    }
 
    private Collection<String> columnList() {
