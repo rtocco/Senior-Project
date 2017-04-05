@@ -234,17 +234,12 @@ public class Parser {
       }
 
       List<String> orderBy = new ArrayList<String>();
+      List<Boolean> descList = new ArrayList<Boolean>();
       if(lex.matchKeyword("order")) {
-         lex.eatKeyword("order");
-         lex.eatKeyword("by");
-         orderBy.add(lex.eatId());
-         while(lex.matchDelim(',')) {
-            lex.eatDelim(',');
-            orderBy.add(lex.eatId());
-         }
+         orderList(orderBy, descList);
       }
 
-      return new QueryData(allFields, fields, tables, joinType, pred, groupPred, groupByfields, aggregationFns, orderBy);
+      return new QueryData(allFields, fields, tables, joinType, pred, groupPred, groupByfields, aggregationFns, orderBy, descList);
    }
 
    private Collection<String> columnList() {
@@ -302,6 +297,22 @@ public class Parser {
          joinType = "right";
       }
       return joinType;
+   }
+
+   private void orderList(List<String> orderBy, List<Boolean> descList) {
+      lex.eatKeyword("order");
+      lex.eatKeyword("by");
+      do {
+         if(lex.matchDelim(',')) lex.eatDelim(',');
+         orderBy.add(lex.eatId());
+         if(lex.matchKeyword("asc")) {
+            descList.add(false);
+         } else if(lex.matchKeyword("desc")) {
+            descList.add(true);
+         } else {
+            descList.add(false);
+         }
+      } while(lex.matchDelim(','));
    }
 
 // Methods for parsing the various update commands

@@ -22,7 +22,7 @@ To Do List:
       - Having keyword implemented.
       - Join/Inner Join keywords work now.
       - Full Outer, Left, and Right Joins implemented.
-      - Order by implemented for ascending values.
+      - Order by implemented.
 
 
 

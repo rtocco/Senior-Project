@@ -9,7 +9,8 @@ import java.util.*;
  */
 public class RecordComparator implements Comparator<Scan> {
    private List<String> fields;
-   
+   private List<Boolean> descList = new ArrayList<Boolean>();
+
    /**
     * Creates a comparator using the specified fields,
     * using the ordering implied by its iterator.
@@ -18,7 +19,12 @@ public class RecordComparator implements Comparator<Scan> {
    public RecordComparator(List<String> fields) {
       this.fields = fields;
    }
-   
+
+   public RecordComparator(List<String> fields, List<Boolean> descList) {
+      this.fields = fields;
+      this.descList = descList;
+   }
+
    /**
     * Compares the current records of the two specified scans.
     * The sort fields are considered in turn.
@@ -32,12 +38,18 @@ public class RecordComparator implements Comparator<Scan> {
     * @return the result of comparing each scan's current record according to the field list
     */
    public int compare(Scan s1, Scan s2) {
+      int index = 0;
       for (String fldname : fields) {
          Constant val1 = s1.getVal(fldname);
          Constant val2 = s2.getVal(fldname);
          int result = val1.compareTo(val2);
-         if (result != 0)
+         if (result != 0) {
+            if(descList.size() > 0 && descList.get(index) == true) {
+               return result * -1;
+            }
             return result;
+         }
+         index++;
       }
       return 0;
    }

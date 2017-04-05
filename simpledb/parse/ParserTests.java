@@ -655,6 +655,7 @@ public class ParserTests {
          e.printStackTrace();
          assertTrue("Order By: Should not throw an exception.", false);
       }
+
       try {
          Parser parser = new Parser("select * from guests order by hotel, guestName");
          QueryData data = parser.query();
@@ -671,6 +672,29 @@ public class ParserTests {
          assertEquals("Third guest name should be John", scan.getString("guestname"), "John");
          scan.next();
          assertEquals("Fourth guest name should be Matthew", scan.getString("guestname"), "Matthew");
+         tx.commit();
+
+      } catch(Exception e) {
+         e.printStackTrace();
+         assertTrue("Order By: Should not throw an exception.", false);
+      }
+
+      try {
+         Parser parser = new Parser("select * from guests order by hotel desc, guestName asc");
+         QueryData data = parser.query();
+         QueryPlanner planner = new BasicQueryPlanner();
+         Transaction tx = new Transaction();
+         Plan plan = planner.createPlan(data, tx);
+         Scan scan = plan.open();
+
+         scan.next();
+         assertEquals("First guest name should be John", scan.getString("guestname"), "John");
+         scan.next();
+         assertEquals("Second guest name should be Matthew", scan.getString("guestname"), "Matthew");
+         scan.next();
+         assertEquals("Third guest name should be Luke", scan.getString("guestname"), "Luke");
+         scan.next();
+         assertEquals("Fourth guest name should be Mark", scan.getString("guestname"), "Mark");
          tx.commit();
 
       } catch(Exception e) {

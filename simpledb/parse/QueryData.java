@@ -18,11 +18,12 @@ public class QueryData {
    private Collection<String> groupByfields;
    private Collection<AggregationFn> aggregationFns;
    private List<String> orderBy;
+   private List<Boolean> descList;
 
    /**
     * Saves the field and table list and predicate.
     */
-   public QueryData(boolean allFields, Collection<String> fields, Collection<String> tables, String joinType, Predicate pred, Predicate groupPred, Collection<String> groupByfields, Collection<AggregationFn> aggregationFns, List<String> orderBy) {
+   public QueryData(boolean allFields, Collection<String> fields, Collection<String> tables, String joinType, Predicate pred, Predicate groupPred, Collection<String> groupByfields, Collection<AggregationFn> aggregationFns, List<String> orderBy, List<Boolean> descList) {
       this.allFields = allFields;
       this.fields = fields;
       this.tables = tables;
@@ -32,6 +33,7 @@ public class QueryData {
       this.groupByfields = groupByfields;
       this.aggregationFns = aggregationFns;
       this.orderBy = orderBy;
+      this.descList = descList;
 
       if(groupByfields != null) {
          boolean containsAll = true;
@@ -88,6 +90,10 @@ public class QueryData {
 
    public List<String> orderBy() {
       return orderBy;
+   }
+
+   public List<Boolean> descList() {
+      return descList;
    }
 
    /**
