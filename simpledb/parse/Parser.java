@@ -213,12 +213,15 @@ public class Parser {
          groupPred = predicate(aggregationFns);
       }
 
-      String orderBy = "";
-      String orderDir = "";
+      List<String> orderBy = new ArrayList<String>();
       if(lex.matchKeyword("order")) {
          lex.eatKeyword("order");
          lex.eatKeyword("by");
-         orderBy = lex.eatId();
+         orderBy.add(lex.eatId());
+         while(lex.matchDelim(',')) {
+            lex.eatDelim(',');
+            orderBy.add(lex.eatId());
+         }
       }
 
       return new QueryData(allFields, fields, tables, joinType, pred, groupPred, groupByfields, aggregationFns, orderBy);

@@ -17,12 +17,12 @@ public class QueryData {
    private Predicate groupPred;
    private Collection<String> groupByfields;
    private Collection<AggregationFn> aggregationFns;
-   private String orderBy;
+   private List<String> orderBy;
 
    /**
     * Saves the field and table list and predicate.
     */
-   public QueryData(boolean allFields, Collection<String> fields, Collection<String> tables, String joinType, Predicate pred, Predicate groupPred, Collection<String> groupByfields, Collection<AggregationFn> aggregationFns, String orderBy) {
+   public QueryData(boolean allFields, Collection<String> fields, Collection<String> tables, String joinType, Predicate pred, Predicate groupPred, Collection<String> groupByfields, Collection<AggregationFn> aggregationFns, List<String> orderBy) {
       this.allFields = allFields;
       this.fields = fields;
       this.tables = tables;
@@ -86,7 +86,7 @@ public class QueryData {
       return aggregationFns;
    }
 
-   public String orderBy() {
+   public List<String> orderBy() {
       return orderBy;
    }
 
