@@ -678,4 +678,58 @@ public class ParserTests {
          assertTrue("Order By: Should not throw an exception.", false);
       }
    }
+
+   @Test
+   public void lessThan() {
+      System.out.println("\nLess Than Test");
+      try {
+         Parser parser = new Parser("select * from guests where guestID < 3");
+         QueryData data = parser.query();
+         QueryPlanner planner = new BasicQueryPlanner();
+         Transaction tx = new Transaction();
+         Plan plan = planner.createPlan(data, tx);
+         Scan scan = plan.open();
+
+         ArrayList<String> guestNames = new ArrayList<String>();
+         while(scan.next()) {
+            guestNames.add(scan.getString("guestname"));
+         }
+         tx.commit();
+         assertTrue("Guest names should include Matthew", guestNames.contains("Matthew"));
+         assertTrue("Guest names should include Mark", guestNames.contains("Mark"));
+         assertTrue("Guest names should not include Luke", !guestNames.contains("Luke"));
+         assertTrue("Guest names should not include John", !guestNames.contains("John"));
+
+      } catch(Exception e) {
+         e.printStackTrace();
+         assertTrue("Less Than: Should not throw an exception.", false);
+      }
+   }
+
+   @Test
+   public void greaterThan() {
+      System.out.println("\nGreater Than Test");
+      try {
+         Parser parser = new Parser("select * from guests where guestID > 2");
+         QueryData data = parser.query();
+         QueryPlanner planner = new BasicQueryPlanner();
+         Transaction tx = new Transaction();
+         Plan plan = planner.createPlan(data, tx);
+         Scan scan = plan.open();
+
+         ArrayList<String> guestNames = new ArrayList<String>();
+         while(scan.next()) {
+            guestNames.add(scan.getString("guestname"));
+         }
+         tx.commit();
+         assertTrue("Guest names should include Luke", guestNames.contains("Luke"));
+         assertTrue("Guest names should include John", guestNames.contains("John"));
+         assertTrue("Guest names should not include Matthew", !guestNames.contains("Matthew"));
+         assertTrue("Guest names should not include Mark", !guestNames.contains("Mark"));
+
+      } catch(Exception e) {
+         e.printStackTrace();
+         assertTrue("Less Than: Should not throw an exception.", false);
+      }
+   }
 }

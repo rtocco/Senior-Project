@@ -9,20 +9,22 @@ import simpledb.record.Schema;
  */
 public class Term {
    private Expression lhs, rhs;
-   
+   private char compare;
+
    /**
     * Creates a new term that compares two expressions
     * for equality.
     * @param lhs  the LHS expression
     * @param rhs  the RHS expression
     */
-   public Term(Expression lhs, Expression rhs) {
+   public Term(Expression lhs, Expression rhs, char compare) {
       this.lhs = lhs;
       this.rhs = rhs;
+      this.compare = compare;
    }
-   
+
    /**
-    * Calculates the extent to which selecting on the term reduces 
+    * Calculates the extent to which selecting on the term reduces
     * the number of records output by a query.
     * For example if the reduction factor is 2, then the
     * term cuts the size of the output in half.
@@ -51,7 +53,7 @@ public class Term {
       else
          return Integer.MAX_VALUE;
    }
-   
+
    /**
     * Determines if this term is of the form "F=c"
     * where F is the specified field and c is some constant.
@@ -72,7 +74,7 @@ public class Term {
       else
          return null;
    }
-   
+
    /**
     * Determines if this term is of the form "F1=F2"
     * where F1 is the specified field and F2 is another field.
@@ -93,7 +95,7 @@ public class Term {
       else
          return null;
    }
-   
+
    /**
     * Returns true if both of the term's expressions
     * apply to the specified schema.
@@ -103,7 +105,7 @@ public class Term {
    public boolean appliesTo(Schema sch) {
       return lhs.appliesTo(sch) && rhs.appliesTo(sch);
    }
-   
+
    /**
     * Returns true if both of the term's expressions
     * evaluate to the same constant,
@@ -114,9 +116,16 @@ public class Term {
    public boolean isSatisfied(Scan s) {
       Constant lhsval = lhs.evaluate(s);
       Constant rhsval = rhs.evaluate(s);
-      return rhsval.equals(lhsval);
+      if(compare == '<') {
+         if(lhsval.compareTo(rhsval) < 0) return true;
+      } else if(compare == '>') {
+         if(lhsval.compareTo(rhsval) > 0) return true;
+      } else if(compare == '=') {
+         if(lhsval.compareTo(rhsval) == 0) return true;
+      }
+      return false;
    }
-   
+
    public String toString() {
       return lhs.toString() + "=" + rhs.toString();
    }

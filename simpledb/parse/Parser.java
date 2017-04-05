@@ -127,10 +127,20 @@ public class Parser {
    }
 
    public Term term() {
+      char compare;
       Expression lhs = expression();
-      lex.eatDelim('=');
+      if(lex.matchDelim('<')) {
+         lex.eatDelim('<');
+         compare = '<';
+      } else if(lex.matchDelim('>')) {
+         lex.eatDelim('>');
+         compare = '>';
+      } else {
+         lex.eatDelim('=');
+         compare = '=';
+      }
       Expression rhs = expression();
-      return new Term(lhs, rhs);
+      return new Term(lhs, rhs, compare);
    }
 
    public Predicate predicate() {
@@ -153,10 +163,20 @@ public class Parser {
    }
 
    public Term term(ArrayList<AggregationFn> aggregationFns) {
+      char compare;
       Expression lhs = expression(aggregationFns);
-      lex.eatDelim('=');
+      if(lex.matchDelim('<')) {
+         lex.eatDelim('<');
+         compare = '<';
+      } else if(lex.matchDelim('>')) {
+         lex.eatDelim('>');
+         compare = '>';
+      } else {
+         lex.eatDelim('=');
+         compare = '=';
+      }
       Expression rhs = expression(aggregationFns);
-      return new Term(lhs, rhs);
+      return new Term(lhs, rhs, compare);
    }
 
    public Predicate predicate(ArrayList<AggregationFn> aggregationFns) {
