@@ -22,6 +22,7 @@ To Do List:
       - Having keyword implemented.
       - Join/Inner Join keywords work now.
       - Full Outer, Left, and Right Joins implemented.
+      - Greater than and less than now work in the predicate.
       - Order by implemented.
 
 
