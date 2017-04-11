@@ -65,9 +65,9 @@ public class CommandLineTests {
         while(resultSet.next()) {
             for(int i = 1; i <= metaData.getColumnCount(); i++) {
                 if(metaData.getColumnType(i) == Types.VARCHAR || metaData.getColumnType(i) == Types.CHAR) {
-                    System.out.print(resultSet.getString(metaData.getColumnName(i)) + "\t");
+                    System.out.print(resultSet.getString(metaData.getColumnName(i)) + "\t\t");
                 } else {
-                    System.out.print(resultSet.getInt(metaData.getColumnName(i)) + "\t");
+                    System.out.print(resultSet.getInt(metaData.getColumnName(i)) + "\t\t");
                 }
             }
             System.out.println();
