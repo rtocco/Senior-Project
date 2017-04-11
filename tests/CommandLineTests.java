@@ -27,7 +27,7 @@ public class CommandLineTests {
             String firstWord = "";
 
             while(true) {
-                System.out.print("SQL> ");
+                System.out.print("\n\nSQL> ");
 
                 input = scanner.nextLine();
                 firstWord = input.split(" ")[0].toLowerCase();
@@ -70,7 +70,7 @@ public class CommandLineTests {
                     System.out.print(resultSet.getInt(metaData.getColumnName(i)) + "\t\t");
                 }
             }
-            System.out.println("\n\n");
+            System.out.println();
         }
       } catch(SQLException e) {
         System.out.println(e.toString());
