@@ -58,7 +58,7 @@ public class CommandLineTests {
         ResultSetMetaData metaData = resultSet.getMetaData();
 
         for(int i = 1; i <= metaData.getColumnCount(); i++) {
-            System.out.print(metaData.getColumnName(i) + "\t");
+            System.out.print(metaData.getColumnName(i) + "\t\t");
         }
         System.out.println();
 
