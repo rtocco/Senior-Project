@@ -70,7 +70,7 @@ public class CommandLineTests {
                     System.out.print(resultSet.getInt(metaData.getColumnName(i)) + "\t\t");
                 }
             }
-            System.out.println();
+            System.out.println("\n\n");
         }
       } catch(SQLException e) {
         System.out.println(e.toString());
